@@ -1,0 +1,14 @@
+{
+    "name": "my-chat",
+    "version": "0.0.1",
+    "dependencies": {
+        "dateformat": "^2.0.0",
+        "ejs": "~2.1.4",
+        "ent": "",
+        "express": "~4.11.0",
+        "mysql": "^2.14.1",
+        "socket.io": "~2.0.3"
+    },
+    "author": "Florenta",
+    "description": "Un chat en temps réel"
+}

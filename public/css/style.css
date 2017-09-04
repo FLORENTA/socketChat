@@ -1,0 +1,87 @@
+body{
+    font-family: "arial", sans-serif;
+}
+
+.btn {
+    outline: none;
+    border: none;
+    border-radius: 7px;
+    padding: 10px;
+    color: #fff;
+    width: 150px;
+}
+
+.blue{
+    background: royalblue;
+}
+
+.right{
+    position:absolute;
+    right: 0;
+}
+
+form{
+    width: 100%;
+    position: relative;
+    margin-top: 25px;
+}
+
+.field textarea{
+    padding: 10px;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.field textarea{
+    height: 100px;
+}
+
+h1{
+    color: royalblue;
+    text-align: center;
+    height : 10vh;
+    font-size: 3em;
+    margin-top: 2.5vh;
+}
+
+.container{
+    width: 70vw;
+    height: 70vh;
+    position: absolute;
+    left: 15vw;
+    top: 15vh;
+}
+
+.container .message{
+    background: #fafafa;
+    padding: 5px;
+    margin: 10px 0;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.container form{
+    position: absolute;
+    bottom: 0;
+}
+
+.container #messages_list{
+    height: 80%;
+    overflow-y: scroll;
+}
+
+#connected_members{
+    height: 70vh;
+    position: absolute;
+    top: 15vh;
+    left: 5px;
+    width: 10vw;
+    border: 1px solid #c8c8c8;
+    overflow-y: scroll;
+}
+
+
