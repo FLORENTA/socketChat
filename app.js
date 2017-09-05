@@ -52,7 +52,24 @@ app.get("/", function(req, res){
 app.get("/chat", function(req, res){
 
     if(checkSession()){
-        res.render("chat.ejs", {path: req.path, token: session.token, username: session.username});
+
+        var sqlUpdate = "UPDATE members SET connected = 1 WHERE token = " + mysql.escape(session.token);
+        var sqlMembers = "SELECT * FROM members WHERE connected = 1";
+
+        con.query(sqlUpdate, function(err, result){
+            if (err) throw err;
+        });
+
+        con.query(sqlMembers, function(err, results){
+            if (err) throw err;
+
+            res.render("chat.ejs", {
+                path: req.path,
+                token: session.token,
+                username: session.username,
+                connectedMembers: results
+            });
+        });
     }
     else{
         res.redirect("/login");
@@ -86,8 +103,8 @@ app.get("/account/modify", function(req, res){
                 res.render("register.ejs", {
                     path: req.path,
                     username: result[0].username,
-                    name: result[0].nom,
-                    firstname: result[0].prenom,
+                    name: result[0].name,
+                    firstname: result[0].firstname,
                     url : req.url,
                     email: result[0].email
                 });

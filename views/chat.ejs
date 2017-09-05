@@ -1,7 +1,6 @@
 <% include includes/header %>
 <body>
     <% include includes/navigation_bar %>
-
     <ul id="connected_members"></ul>
 
     <div class="container">
@@ -19,6 +18,15 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+
+    <% if (typeof (connectedMembers) !== "undefined")
+    {
+        
+        connectedMembers.forEach(function(connectedMember) {
+            appendNewMember(connectedMember);
+        });
+    }
+    %>
 
     // Function to insert the messages (all from scratch and one by one)
     function appendNewMessage(message){
