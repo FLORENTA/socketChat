@@ -6,15 +6,28 @@ var ent = require('ent');
 var io = require('socket.io').listen(server);
 var dateFormat = require("dateformat");
 var mysql = require("mysql");
+var uniqid = require("uniqid");
+var md5 = require("js-md5");
+var bodyParser = require("body-parser");
+var urlencodedParser = bodyParser.urlencoded({extended : false});
+var session = require("express-session");
 
-// Array to store the pseudo of the user when they connect
-var connectedMembers = [];
+function checkSession(){
+
+    if(typeof (session) !== "undefined" && session !== null) {
+        if (session.loggedIn === true) {
+            return true;
+        }
+    }
+}
+
+app.set("trust proxy", 1);
 
 // Connexion to the database
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "root",
+    password: "",
     database: "chat"
 });
 
@@ -24,26 +37,162 @@ con.connect(function(err){
     console.log("connected !");
 });
 
-// Css File
+// To get static files in public folder
 app.use(express.static(__dirname + "/public"));
 
+// Session
+app.use(session({secret : uniqid()}));
+
+/* Homepage */
 app.get("/", function(req, res){
-    res.render("home.ejs");
+    res.render("home.ejs", {path : req.path});
 });
 
-// Route "/"
+/* Renders the chat interface */
 app.get("/chat", function(req, res){
-    res.render("index.ejs");
+
+    if(checkSession()){
+        res.render("chat.ejs", {path: req.path, token: session.token, username: session.username});
+    }
+    else{
+        res.redirect("/login");
+    }
+
 });
 
+/* Page to create an account */
 app.get("/account/create", function(req, res){
-   res.render("register.ejs", {url : "/register/action"});
+    res.render("register.ejs", {url : "/register/action", path : req.path});
 });
 
+/* Page to check account information */
+app.get("/account/modify", function(req, res){
+
+    if(checkSession()){
+
+        var sql = "SELECT * FROM members WHERE token = " + mysql.escape(session.token);
+
+        con.query(sql, function(err, result){
+            if (err) throw err;
+
+            if(result.length === 0){
+                res.redirect("/myHome", {
+                    path: req.path,
+                    username: session.username
+                });
+            }
+            else{
+
+                res.render("register.ejs", {
+                    path: req.path,
+                    username: result[0].username,
+                    name: result[0].nom,
+                    firstname: result[0].prenom,
+                    url : req.url,
+                    email: result[0].email
+                });
+            }
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
+
+});
+
+app.post("/account/modify", urlencodedParser, function(req, res) {
+
+    var member = {
+        nom: ent.encode(req.body.name),
+        prenom: ent.encode(req.body.firstname),
+        username: ent.encode(req.body.username),
+        email: ent.encode(req.body.email),
+        password: md5(ent.encode(req.body.password)),
+        connected: false
+    };
+
+    var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(session.token);
+
+    con.query(sql, member, function(err, result){
+        if (err) throw err;
+
+        res.redirect("/account/modify");
+    });
+
+});
+
+/* Treatment page if a user creates an account */
+app.post("/register/action", urlencodedParser, function(req, res){
+
+    var member = {
+        nom: ent.encode(req.body.name),
+        prenom: ent.encode(req.body.firstname),
+        username: ent.encode(req.body.username),
+        email: ent.encode(req.body.email),
+        password: md5(ent.encode(req.body.password)),
+        token: md5(uniqid()),
+        connected: false
+    };
+
+    var sql = "INSERT INTO members SET ?";
+
+    con.query(sql, member, function(err, result){
+        if (err) throw err;
+    });
+
+    res.redirect("/login");
+
+});
+
+/* Login page to access personal interface & chat */
 app.get("/login", function(req, res){
-    res.render("login.ejs");
+    res.render("login.ejs", {url : "/login", path : req.path});
 });
 
+/* User homepage */
+app.get("/myHome", function(req, res){
+
+    if(checkSession()){
+        res.render("my_homepage.ejs", {path: req.path, username: session.username});
+    }
+    else{
+        res.redirect("/login");
+    }
+});
+
+/* Checking login & username */
+app.post("/login", urlencodedParser, function(req, res){
+
+    var username = ent.encode(req.body.username);
+    var password = md5(ent.encode(req.body.password));
+
+    var sql = "SELECT * FROM members WHERE username = " + mysql.escape(username) + " AND password = " + mysql.escape(password) + "";
+
+    con.query(sql, function(err, result){
+        if(err) throw err;
+
+        if(result.length === 0){
+            res.redirect("/login");
+        }
+        else{
+            session.username = username;
+            session.token = result[0].token;
+            session.loggedIn = true;
+
+            res.redirect("/myHome");
+        }
+    });
+});
+
+/* Logout */
+app.get("/logout", function(req, res){
+
+    if(typeof (session) !== "undefined" || session !== null){
+        session = null;
+    }
+
+    res.redirect("/");
+});
 
 // Redirects to route "/" if not on route "/"
 app.use(function(req, res, next){
@@ -54,7 +203,7 @@ app.use(function(req, res, next){
 io.on("connection", function(socket){
 
     // Let's get all the messages stored in database and send them to the newly connected user
-    con.query("SELECT * FROM discussion", function (err, result, field) {
+    con.query("SELECT * FROM discussion", function (err, result) {
         if (err) throw err;
         socket.emit("all_messages", result);
     });
@@ -81,26 +230,10 @@ io.on("connection", function(socket){
 
     });
 
-    // Listen to new member pseudo
-    socket.on("pseudo", function(pseudo){
-
-        socket.pseudo = ent.encode(pseudo);
-
-        connectedMembers.push(socket.pseudo);
-
-        socket.emit("connected_members", connectedMembers);
-
-        socket.broadcast.emit("connected_members", connectedMembers);
-
-    });
-
     socket.on("disconnect", function(){
-        console.log(socket.pseudo);
-        console.log(connectedMembers);
-
         var index = connectedMembers.indexOf(socket.pseudo);
     });
 
 });
 
-server.listen(8080);
+server.listen(8000);

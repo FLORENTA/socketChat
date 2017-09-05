@@ -1,6 +1,16 @@
 <nav>
     <ul id="nav_desktop">
-        <li a href="/account/"> Mon compte </li>
-        <li> Chat </li>
+        <li><a href="/"> Accueil </a></li>
+        <% if (path !== "/account/create" && path !== "/login")
+        {
+        %>
+            <li><a href="/account/modify">  Mon compte  </a></li>
+            <li><a href="/chat"> Chat </a></li>
+            <li><a href="/logout"> Déconnexion </a></li>
+            <li><%= username %></li>
+        <%
+        }
+        %>
+
     </ul>
 </nav>

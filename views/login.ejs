@@ -1,0 +1,23 @@
+<% include includes/header %>
+
+<body>
+    <% include includes/navigation_bar %>
+    <div class="container">
+        <div class="sub_container">
+
+            <form method="post" action="<%= url %>" >
+                <div class="field">
+                    <label for="username"> Pseudo </label>
+                    <input type="text" name="username" id="username" />
+                </div>
+                <div class="field">
+                    <label for="password"> Mot de passe </label>
+                    <input type="text" name="password" id="nom"/>
+                </div>
+                <input type="submit" class="btn black middle" />
+            </form>
+
+        </div>
+    </div>
+</body>
+</html>

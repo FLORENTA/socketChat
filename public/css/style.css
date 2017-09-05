@@ -13,7 +13,6 @@ nav{
     position: fixed;
     width: 100%;
     top: 0;
-    color: #fff;
 }
 
 #nav_desktop{
@@ -31,11 +30,19 @@ nav{
     text-align: center;
 }
 
-nav li{
+nav a{
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: #fff;
     cursor: pointer;
 }
 
-nav li:hover{
+nav li{
+    color: #fff;
+}
+
+nav a:hover{
     background: #fff;
     color: royalblue;
     -webkit-transition: 400ms;
@@ -61,15 +68,26 @@ footer{
     outline: none;
     border: none;
     border-radius: 7px;
+    -moz-border-radius: 7px;
     padding: 10px;
     color: #fff;
     width: 150px;
     cursor: pointer;
     text-decoration: none;
+    text-align: center;
 }
 
 .blue{
     background: royalblue;
+}
+
+.black{
+    background: black;
+}
+
+.middle{
+    display: block;
+    margin: 5px auto;
 }
 
 .right{
@@ -124,6 +142,7 @@ h1{
     width: 70vw;
     height: 70vh;
     margin: 100px auto;
+    position: relative;
 }
 
 .container .message{
@@ -164,7 +183,9 @@ h1{
 /* Home */
 
 #homepage-buttons{
-    margin-top: 80px;
+    height: 80px;
+    line-height: 80px;
+    margin-top: calc(50vh - 40px);
     text-align: center;
 }
 
