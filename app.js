@@ -14,7 +14,7 @@ var connectedMembers = [];
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "root",
     database: "chat"
 });
 
@@ -27,10 +27,23 @@ con.connect(function(err){
 // Css File
 app.use(express.static(__dirname + "/public"));
 
-// Route "/"
 app.get("/", function(req, res){
+    res.render("home.ejs");
+});
+
+// Route "/"
+app.get("/chat", function(req, res){
     res.render("index.ejs");
 });
+
+app.get("/account/create", function(req, res){
+   res.render("register.ejs", {url : "/register/action"});
+});
+
+app.get("/login", function(req, res){
+    res.render("login.ejs");
+});
+
 
 // Redirects to route "/" if not on route "/"
 app.use(function(req, res, next){
@@ -75,21 +88,19 @@ io.on("connection", function(socket){
 
         connectedMembers.push(socket.pseudo);
 
-        socket.broadcast.emit("new_member", socket.pseudo);
-
-        socket.index = connectedMembers.length - 1;
-
         socket.emit("connected_members", connectedMembers);
+
+        socket.broadcast.emit("connected_members", connectedMembers);
+
     });
 
-    // Listen to disconnection
     socket.on("disconnect", function(){
+        console.log(socket.pseudo);
+        console.log(connectedMembers);
 
-        connectedMembers.splice(socket.index, 1);
-
-        socket.broadcast.emit("index_to_remove", socket.index);
+        var index = connectedMembers.indexOf(socket.pseudo);
     });
 
 });
 
-server.listen(8000);
+server.listen(8080);
