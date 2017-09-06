@@ -1,3 +1,4 @@
+/* Loading node modules needed */
 var express = require('express');
 var app = express();
 var http = require('http');
@@ -11,52 +12,54 @@ var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
 var session = require("express-session");
-
-function checkSession(){
-
-    if(typeof (session) !== "undefined" && session !== null) {
-        if (session.loggedIn === true) {
-            return true;
-        }
-    }
-}
+var sharedSession = require("express-socket.io-session");
 
 app.set("trust proxy", 1);
 
-// Connexion to the database
+/* Connexion to the database */
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "root",
     database: "chat"
 });
 
-// Initialization
+/* Initialization */
 con.connect(function(err){
+
     if(err) throw err;
+
     console.log("connected !");
+
 });
 
-// To get static files in public folder
+/* To get static files in public folder */
 app.use(express.static(__dirname + "/public"));
 
-// Session
+/* Session */
 app.use(session({secret : uniqid()}));
+
+/* Shared session with socket.io */
+io.use(sharedSession(session));
 
 /* Homepage */
 app.get("/", function(req, res){
-    res.render("home.ejs", {path : req.path});
+
+    res.render("home.ejs", {
+        path : req.path
+    });
+
 });
 
 /* Renders the chat interface */
 app.get("/chat", function(req, res){
 
-    if(checkSession()){
+    if(req.session && req.session.loggedIn === true){
 
-        var sqlUpdate = "UPDATE members SET connected = 1 WHERE token = " + mysql.escape(session.token);
-        var sqlMembers = "SELECT * FROM members WHERE connected = 1";
+        var sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " + mysql.escape(req.session.token);
+        var sqlMembers = "SELECT * FROM members WHERE connected = true";
 
-        con.query(sqlUpdate, function(err, result){
+        con.query(sqlUpdateConnected, function(err, result){
             if (err) throw err;
         });
 
@@ -65,8 +68,8 @@ app.get("/chat", function(req, res){
 
             res.render("chat.ejs", {
                 path: req.path,
-                token: session.token,
-                username: session.username,
+                token: req.session.token,
+                username: req.session.username,
                 connectedMembers: results
             });
         });
@@ -79,15 +82,20 @@ app.get("/chat", function(req, res){
 
 /* Page to create an account */
 app.get("/account/create", function(req, res){
-    res.render("register.ejs", {url : "/register/action", path : req.path});
+
+    res.render("register.ejs", {
+        url : "/register/action",
+        path : req.path
+    });
+
 });
 
 /* Page to check account information */
 app.get("/account/modify", function(req, res){
 
-    if(checkSession()){
+    if(req.session && req.session.loggedIn === true){
 
-        var sql = "SELECT * FROM members WHERE token = " + mysql.escape(session.token);
+        var sql = "SELECT * FROM members WHERE token = " + mysql.escape(req.session.token);
 
         con.query(sql, function(err, result){
             if (err) throw err;
@@ -95,11 +103,11 @@ app.get("/account/modify", function(req, res){
             if(result.length === 0){
                 res.redirect("/myHome", {
                     path: req.path,
-                    username: session.username
+                    username: req.session.username
                 });
             }
             else{
-
+                /* Render the page with the result to fill in the fields */
                 res.render("register.ejs", {
                     path: req.path,
                     username: result[0].username,
@@ -119,22 +127,29 @@ app.get("/account/modify", function(req, res){
 
 app.post("/account/modify", urlencodedParser, function(req, res) {
 
-    var member = {
-        nom: ent.encode(req.body.name),
-        prenom: ent.encode(req.body.firstname),
-        username: ent.encode(req.body.username),
-        email: ent.encode(req.body.email),
-        password: md5(ent.encode(req.body.password)),
-        connected: false
-    };
+    if (req.session && req.session.loggedIn === true){
+        var member = {
+            name: ent.encode(req.body.name),
+            firstname: ent.encode(req.body.firstname),
+            username: ent.encode(req.body.username),
+            email: ent.encode(req.body.email),
+            password: md5(ent.encode(req.body.password)),
+            connected: false
+        };
 
-    var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(session.token);
+        var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(req.session.token);
 
-    con.query(sql, member, function(err, result){
-        if (err) throw err;
+        con.query(sql, member, function(err){
+            if (err) throw err;
 
-        res.redirect("/account/modify");
-    });
+            /* The username may have changed */
+            req.session.username = member.username;
+            res.redirect("/account/modify");
+        });
+    }
+    else{
+        redirect("/");
+    }
 
 });
 
@@ -142,8 +157,8 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
 app.post("/register/action", urlencodedParser, function(req, res){
 
     var member = {
-        nom: ent.encode(req.body.name),
-        prenom: ent.encode(req.body.firstname),
+        name: ent.encode(req.body.name),
+        firstname: ent.encode(req.body.firstname),
         username: ent.encode(req.body.username),
         email: ent.encode(req.body.email),
         password: md5(ent.encode(req.body.password)),
@@ -153,7 +168,7 @@ app.post("/register/action", urlencodedParser, function(req, res){
 
     var sql = "INSERT INTO members SET ?";
 
-    con.query(sql, member, function(err, result){
+    con.query(sql, member, function(err){
         if (err) throw err;
     });
 
@@ -163,14 +178,22 @@ app.post("/register/action", urlencodedParser, function(req, res){
 
 /* Login page to access personal interface & chat */
 app.get("/login", function(req, res){
-    res.render("login.ejs", {url : "/login", path : req.path});
+
+    res.render("login.ejs", {
+        url : "/login",
+        path : req.path
+    });
+
 });
 
 /* User homepage */
 app.get("/myHome", function(req, res){
 
-    if(checkSession()){
-        res.render("my_homepage.ejs", {path: req.path, username: session.username});
+    if(req.session && req.session.loggedIn === true){
+        res.render("my_homepage.ejs", {
+            path: req.path,
+            username: req.session.username
+        });
     }
     else{
         res.redirect("/login");
@@ -183,7 +206,8 @@ app.post("/login", urlencodedParser, function(req, res){
     var username = ent.encode(req.body.username);
     var password = md5(ent.encode(req.body.password));
 
-    var sql = "SELECT * FROM members WHERE username = " + mysql.escape(username) + " AND password = " + mysql.escape(password) + "";
+    var sql = "SELECT * FROM members WHERE username = " + mysql.escape(username) +
+              " AND password = " + mysql.escape(password) + "";
 
     con.query(sql, function(err, result){
         if(err) throw err;
@@ -192,9 +216,9 @@ app.post("/login", urlencodedParser, function(req, res){
             res.redirect("/login");
         }
         else{
-            session.username = username;
-            session.token = result[0].token;
-            session.loggedIn = true;
+            req.session.username = username;
+            req.session.token = result[0].token;
+            req.session.loggedIn = true;
 
             res.redirect("/myHome");
         }
@@ -204,25 +228,46 @@ app.post("/login", urlencodedParser, function(req, res){
 /* Logout */
 app.get("/logout", function(req, res){
 
-    if(typeof (session) !== "undefined" || session !== null){
-        session = null;
+    var sqlUpdateConnectedStatus = "UPDATE members SET connected = false WHERE token = " +
+                                    mysql.escape(req.session.token) + "";
+
+    con.query(sqlUpdateConnectedStatus, function(err){
+        if (err) throw err;
+
+    });
+
+    if(req.session && req.session.loggedIn === true){
+        req.session = null;
     }
 
     res.redirect("/");
 });
 
 // Redirects to route "/" if not on route "/"
-app.use(function(req, res, next){
+app.use(function(req, res){
+
     res.redirect("/");
+
 });
 
 // Listen to connections
 io.on("connection", function(socket){
 
+    socket.on("joined_chat", function(userData){
+
+        socket.handshake.session.userData = userData;
+
+        console.log(socket.handshake.session);
+
+    });
+
     // Let's get all the messages stored in database and send them to the newly connected user
     con.query("SELECT * FROM discussion", function (err, result) {
+
         if (err) throw err;
+
         socket.emit("all_messages", result);
+
     });
 
     // Listen to new message sent by a member
@@ -247,9 +292,53 @@ io.on("connection", function(socket){
 
     });
 
-    socket.on("disconnect", function(){
-        var index = connectedMembers.indexOf(socket.pseudo);
+    socket.on("verify_username", function(username){
+
+        username = ent.encode(username);
+
+        /* Let's check also according to the session. Otherwise,
+           the user cannot submit the form with their own pseudo
+        */
+        var sqlUsername;
+
+        if(socket.handshake) {
+            sqlUsername = "SELECT * FROM members WHERE username = " + mysql.escape(username) +
+                          " AND NOT token = " + mysql.escape(req.session.token) + "";
+        }
+        else{
+            sqlUsername = "SELECT * FROM members WHERE username = " + mysql.escape(username) + "";
+        }
+
+        con.query(sqlUsername, function(err, result){
+            if (err) throw err;
+
+            if (result.length > 0){
+                socket.emit("verify_username", {used: true, pseudo: username});
+            }
+            else{
+                socket.emit("verify_username", {used: false});
+            }
+        });
     });
+
+    socket.on("disconnect", function(){
+
+        var sqlUserConnectedStatus = "UPDATE members SET connected = false WHERE token = " +
+                                      mysql.escape(sharedSession) + "";
+
+        var sqlConnectedUsers = "SELECT * FROM members WHERE connected = true";
+
+        con.query(sqlUserConnectedStatus, function(err){
+            if (err) throw err;
+        });
+
+        con.query(sqlConnectedUsers, function(err, results){
+            if (err) throw err;
+
+            socket.broadcast.emit("connected_members", results);
+        });
+
+    })
 
 });
 

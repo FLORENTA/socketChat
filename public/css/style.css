@@ -42,6 +42,11 @@ nav li{
     color: #fff;
 }
 
+nav li:last-child{
+    position: absolute;
+    right: 0;
+}
+
 nav a:hover{
     background: #fff;
     color: royalblue;
@@ -178,6 +183,15 @@ h1{
 .sub_container{
     width: 50%;
     margin: 0 auto;
+}
+
+/* Sign up page */
+
+#alert_username{
+    color: #b22222;
+    display: none;
+    margin-bottom: 5px;
+    text-align: right;
 }
 
 /* Home */

@@ -1,22 +1,23 @@
-<% include includes/header %>
+<% include includes/header.ejs %>
 
 <body>
-    <% include includes/navigation_bar %>
+    <% include includes/navigation_bar.ejs %>
 
     <div class="container">
         <div class="sub_container">
             <form method=post action="<%= url %>">
                 <div class="field">
-                    <label for="nom"> Nom </label>
-                    <input type="text" name="name" id="nom" <% if (typeof(name) !== "undefined") { %> value="<%= name %>" <% } %>/>
+                    <label for="name"> Nom </label>
+                    <input type="text" name="name" id="name" <% if (typeof(name) !== "undefined") { %> value="<%= name %>" <% } %> required/>
                 </div>
                 <div class="field">
-                    <label for="prenom"> Prénom </label>
-                    <input type="text" name="firstname" id="prenom" <% if (typeof(firstname) !== "undefined") { %> value="<%= firstname %>" <% } %>/>
+                    <label for="firstname"> Prénom </label>
+                    <input type="text" name="firstname" id="firstname" <% if (typeof(firstname) !== "undefined") { %> value="<%= firstname %>" <% } %> required/>
                 </div>
                 <div class="field">
                     <label for="username"> Pseudo </label>
-                    <input type="text" name="username" id="username" <% if (typeof(username) !== "undefined") { %> value="<%= username %>" <% } %>/>
+                    <input type="text" name="username" id="username" <% if (typeof(username) !== "undefined") { %> value="<%= username %>" <% } %> required/>
+                    <div id="alert_username"></div>
                 </div>
                 <div class="field">
                     <label for="password"> Mot de passe </label>
@@ -24,14 +25,41 @@
                 </div>
                 <div class="field">
                     <label for="email"> Email </label>
-                    <input type="text" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %>/>
+                    <input type="text" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
                 </div>
                 <input type="submit" class="btn black middle" />
             </form>
         </div>
     </div>
 
-<% include includes/footer %>
+    <% include includes/footer.ejs %>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+
+        var socket = io.connect("http://localhost:8000");
+
+        var formElt = document.querySelector("form");
+        var alertUserName = document.getElementById("alert_username");
+
+        function sendForm(e){
+            e.preventDefault();
+
+            socket.emit("verify_username", this.elements.username.value);
+            socket.on("verify_username", function(response){
+                if (response.used === true){
+                    alertUserName.style.display = "block";
+                    alertUserName.textContent = "Pseudo " + response.pseudo + " déjà utilisé.";
+                }
+                else{
+                    alertUserName.style.display = "none";
+                    formElt.submit();
+                }
+            })
+        }
+
+        formElt.addEventListener("submit", sendForm);
+
+    </script>
 </body>
 </html>
 

@@ -1,7 +1,16 @@
 <% include includes/header %>
 <body>
     <% include includes/navigation_bar %>
-    <ul id="connected_members"></ul>
+    <ul id="connected_members">
+        <% if (typeof (connectedMembers) !== "undefined"){
+            connectedMembers.forEach(function(connectedMember) {
+        %>
+           <li><%= connectedMember.username %></li>
+        <%
+            });
+        }
+        %>
+    </ul>
 
     <div class="container">
         <div id="messages_list"></div>
@@ -18,15 +27,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-
-    <% if (typeof (connectedMembers) !== "undefined")
-    {
-        
-        connectedMembers.forEach(function(connectedMember) {
-            appendNewMember(connectedMember);
-        });
-    }
-    %>
 
     // Function to insert the messages (all from scratch and one by one)
     function appendNewMessage(message){
@@ -74,8 +74,6 @@
 
     formElt.addEventListener("submit", sendData);
 
-    document.getElementsByTagName("title")[0].textContent = pseudo;
-
     // Waiting for the list of all messages stored in database
     socket.on("all_messages", function(messages){
 
@@ -102,6 +100,11 @@
         });
 
     });
+
+    var plop = "plop";
+    socket.emit("joined_chat", plop);
+
+    console.log("<%= token %>");
 
     </script>
 </body>
