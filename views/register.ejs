@@ -1,0 +1,107 @@
+<% include includes/header.ejs %>
+
+<body>
+    <% include includes/navigation_bar.ejs %>
+
+    <div class="container">
+        <div class="sub_container">
+            <form method=post action="<%= url %>">
+                <div class="field">
+                    <label for="name"> Nom </label>
+                    <input type="text" name="name" id="name" <% if (typeof(name) !== "undefined") { %> value="<%= name %>" <% } %> required/>
+                </div>
+                <div class="field">
+                    <label for="firstname"> Prénom </label>
+                    <input type="text" name="firstname" id="firstname" <% if (typeof(firstname) !== "undefined") { %> value="<%= firstname %>" <% } %> required/>
+                </div>
+                <div class="field">
+                    <label for="username"> Pseudo </label>
+                    <input type="text" name="username" id="username" <% if (typeof(username) !== "undefined") { %> value="<%= username %>" <% } %> required/>
+                    <div id="alert_username"></div>
+                </div>
+                <div class="field">
+                    <label for="password"> Mot de passe </label>
+                    <input type="text" name="password" id="password" required/>
+                </div>
+                <div class="field">
+                    <label for="email"> Email </label>
+                    <input type="email" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
+                    <div id="email_invalide"> Email invalide </div>
+                </div>
+                <input type="submit" class="btn black middle" />
+            </form>
+        </div>
+    </div>
+
+    <% include includes/footer.ejs %>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+
+        var socket = io.connect("http://localhost:8000");
+
+        var formElt = document.querySelector("form");
+        var alertUserName = document.getElementById("alert_username");
+        var emailInvalide = document.getElementById("email_invalide");
+        var inputEmail = document.getElementById("email");
+        var emailValid;
+
+        var regexpEmail = /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/;
+
+        function sendForm(e){
+
+            e.preventDefault();
+
+            /* Ask server for pseudo verification */
+
+            socket.emit("verify_username", this.elements.username.value);
+
+            /* Wait for the response */
+
+            socket.on("verify_username", function(response){
+                if (response.used === true){
+                    alertUserName.style.display = "block";
+                    alertUserName.textContent = "Pseudo " + response.pseudo + " déjà utilisé.";
+                }
+                else{
+                    alertUserName.style.display = "none";
+
+                    if(emailValid === true){
+                        emailInvalide.style.display = "none";
+                        formElt.submit();
+                    }
+                    else{
+                        emailInvalide.style.display = "block";
+                    }
+                }
+            });
+        }
+
+        <% if (typeof (token) !== "undefined")
+        {
+        %>
+        socket.emit("init", {token : "<%= token %>", username : "<%= username %>", chat: false});
+        <%
+        }
+        %>
+
+        formElt.addEventListener("submit", sendForm);
+
+        inputEmail.addEventListener("blur", function(e){
+
+            if(!regexpEmail.test(e.target.value)){
+                this.style.border = "2px solid #b22222";
+                emailValid = false;
+            }
+            else{
+                this.style.border = "2px solid green";
+                emailValid = true;
+            }
+        });
+
+    </script>
+</body>
+</html>
+
+
+

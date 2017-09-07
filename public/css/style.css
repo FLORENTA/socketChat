@@ -1,18 +1,134 @@
 body{
     font-family: "arial", sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+nav{
+    background: royalblue;
+    height: 60px;
+    -webkit-box-shadow: 0 0 5px black;
+    -moz-box-shadow: 0 0 5px black;
+    box-shadow: 0 0 5px black;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 2;
+}
+
+nav #burger{
+    height: 40px;
+    width: 40px;
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: url("burger.png") center no-repeat;
+    background-size: 100%;
+    cursor: pointer;
+}
+
+nav ul{
+    list-style-type: none;
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+nav li{
+    color: #fff;
+}
+
+nav a{
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+nav a:hover{
+    background: #fff;
+    color: royalblue;
+    -webkit-transition: 400ms;
+    -moz-transition:  400ms;
+    -o-transition:  400ms;
+    transition:  400ms;
+}
+
+#nav_desktop{
+    height: 60px;
+    line-height: 60px;
+}
+
+#nav_desktop li{
+    width: 15vw;
+    height: 100%;
+    text-align: center;
+}
+
+#nav_desktop li:last-child{
+    position: absolute;
+    right: 0;
+}
+
+#nav_mobile{
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    width: 100%;
+    background: royalblue;
+    left: -100%;
+    -webkit-transition: 400ms;
+    -moz-transition: 400ms;
+    -o-transition: 400ms;
+    transition: 400ms;
+}
+
+#nav_mobile li{
+    width: 100%;
+    height: 50px;
+    line-height: 50px;
+    text-indent: 10px;
+}
+
+footer{
+    position: absolute;
+    bottom: 0;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    color: #fff;
+    background: royalblue;
+    width: 100%;
+    font-size: .9em;
 }
 
 .btn {
     outline: none;
     border: none;
     border-radius: 7px;
+    -moz-border-radius: 7px;
     padding: 10px;
     color: #fff;
     width: 150px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    margin: 5px 0 0 0;
 }
 
 .blue{
     background: royalblue;
+}
+
+.black{
+    background: black;
+}
+
+.middle{
+    display: block;
+    margin: 5px auto;
 }
 
 .right{
@@ -20,18 +136,30 @@ body{
     right: 0;
 }
 
-form{
-    width: 100%;
-    position: relative;
-    margin-top: 25px;
-}
-
+.field label,
 .field textarea{
+    display: block;
     padding: 10px;
     width: 100%;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
+}
+
+.field label{
+    text-align: center;
+    background: royalblue;
+    color: #fff;
+}
+
+.field input[type="text"],
+.field input[type="email"]{
+    width: 100%;
+    padding: 10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 5px 0;
 }
 
 .field textarea{
@@ -47,41 +175,137 @@ h1{
 }
 
 .container{
-    width: 70vw;
+    width: 50vw;
     height: 70vh;
-    position: absolute;
-    left: 15vw;
-    top: 15vh;
+    margin: 15vh auto;
+    position: relative;
+    overflow: hidden;
+    padding: 0;
 }
 
-.container .message{
+.container #messages_list{
+    height: 76%;
+    overflow-y: scroll;
+}
+
+.container #messages_list::-webkit-scrollbar-thumb {
+    background: royalblue;
+}
+
+.container #messages_list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.container #messages_list .message{
     background: #fafafa;
-    padding: 5px;
-    margin: 10px 0;
+    padding: 2px;
+    margin-bottom: 5px;
     width: 100%;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
 
-.container form{
-    position: absolute;
-    bottom: 0;
+.container #messages_list .message:last-child{
+    margin-bottom: 0;
 }
 
-.container #messages_list{
-    height: 80%;
-    overflow-y: scroll;
+.container #send_message{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin: 0;
+}
+
+#send_message textarea{
+    resize: none;
 }
 
 #connected_members{
     height: 70vh;
-    position: absolute;
+    position: fixed;
     top: 15vh;
-    left: 5px;
-    width: 10vw;
-    border: 1px solid #c8c8c8;
+    left: 0;
+    width: 200px;
+    -webkit-box-shadow: 0 0 3px #c8c8c8;
+    -moz-box-shadow: 0 0 3px #c8c8c8;
+    box-shadow: 0 0 3px #c8c8c8;
     overflow-y: scroll;
+    z-index: 1;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#connected_members li{
+    width: 100%;
+    text-indent: 5px;
+    margin: 2px 0;
+}
+
+#connected_members::-webkit-scrollbar{
+    display: none;
+}
+
+.sub_container{
+    width: 50%;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Sign up page */
+
+#alert_username,
+#email_invalide{
+    color: #b22222;
+    display: none;
+    margin: 5px 0;
+    text-align: right;
+}
+
+/* Home */
+
+#home{
+    background: royalblue;
+}
+
+#homepage-buttons{
+    height: 20vh;
+    line-height: 20vh;
+    text-align: center;
+    background: #fafafa;
+    margin: 40vh auto 40vh auto;
+}
+
+/* Login page */
+
+#formLogin{
+    background: #eee;
+    padding: 20px;
+}
+
+@media all and (max-width: 1024px){
+
+    nav #burger{
+        display: block;
+    }
+
+    .container{
+        width: 95%;
+    }
+
+    .sub_container{
+        width: 100%;
+    }
+
+    #connected_members{
+        left: -200px;
+    }
+
+    .btn{
+        font-size: 1em;
+    }
 }
 
 
