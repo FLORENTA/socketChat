@@ -26,7 +26,7 @@ app.set("trust proxy", 1);
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "root",
+    password: "",
     database: "chat"
 });
 
@@ -272,23 +272,22 @@ io.on("connection", function(socket){
         socket.handshake.session.save();
 
         var sqlUpdateConnected;
+        var sqlMembers = "SELECT * FROM members ORDER BY username";
 
         if(userData.chat === true) {
 
             sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
                                   mysql.escape(socket.handshake.session.token) + "";
-
         }
         else{
             sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
                                   mysql.escape(socket.handshake.session.token) + "";
         }
 
-        var sqlMembers = "SELECT * FROM members";
-
         con.query(sqlUpdateConnected, function (err) {
             if (err) throw err;
         });
+
 
         con.query(sqlMembers, function (err, results) {
             if (err) throw err;

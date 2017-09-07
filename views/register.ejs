@@ -21,11 +21,11 @@
                 </div>
                 <div class="field">
                     <label for="password"> Mot de passe </label>
-                    <input type="text" name="password" id="nom"/>
+                    <input type="text" name="password" id="password"/>
                 </div>
                 <div class="field">
                     <label for="email"> Email </label>
-                    <input type="text" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
+                    <input type="email" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
                 </div>
                 <input type="submit" class="btn black middle" />
             </form>

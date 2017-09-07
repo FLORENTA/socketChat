@@ -40,7 +40,7 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
-        messagesList.insertBefore(divElt, messagesList.firstElementChild);
+        messagesList.appendChild(divElt);
     }
 
     /* To add a user to the list */
@@ -96,6 +96,7 @@
 
     socket.on("new_message", function(message){
         appendNewMessage(message);
+        messagesList.scrollTop = messagesList.lastElementChild.offsetTop;
     });
 
     /* Waiting for the list of pseudos of all members connected */
@@ -106,7 +107,7 @@
             membersList.removeChild(membersList.lastElementChild);
         }
 
-        members.forEach(function(member){
+        members.forEach(function(member, index){
             appendNewMember(member);
         });
 

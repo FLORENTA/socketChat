@@ -1,16 +1,23 @@
 window.addEventListener("load", function() {
 
-    var regexpHomePage = /^\/$/;
-    var regexpLoginPage = /\/login$/;
+    var navUlElt = document.querySelector("nav ul");
 
-    if (!regexpHomePage.test(location.pathname) && !regexpLoginPage.test(location.pathname)) {
+    if (window.innerWidth < 1024) {
 
-        if (window.innerWidth < 1024) {
-            document.querySelector("nav ul").setAttribute("id", "nav_mobile");
-        }
-        else {
-            document.querySelector("nav ul").setAttribute("id", "nav_desktop");
-        }
+        navUlElt.setAttribute("id", "nav_mobile");
+
+        document.getElementById("burger").addEventListener("click", function(){
+
+            if(parseFloat(getComputedStyle(navUlElt).left) < 0){
+                navUlElt.style.left = "0";
+            }
+            else{
+                navUlElt.style.left = "-100%";
+            }
+        });
+    }
+    else {
+        navUlElt.setAttribute("id", "nav_desktop");
     }
 
 });
