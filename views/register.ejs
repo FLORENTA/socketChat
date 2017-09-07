@@ -21,11 +21,12 @@
                 </div>
                 <div class="field">
                     <label for="password"> Mot de passe </label>
-                    <input type="text" name="password" id="password"/>
+                    <input type="text" name="password" id="password" required/>
                 </div>
                 <div class="field">
                     <label for="email"> Email </label>
                     <input type="email" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
+                    <div id="email_invalide"> Email invalide </div>
                 </div>
                 <input type="submit" class="btn black middle" />
             </form>
@@ -41,11 +42,22 @@
 
         var formElt = document.querySelector("form");
         var alertUserName = document.getElementById("alert_username");
+        var emailInvalide = document.getElementById("email_invalide");
+        var inputEmail = document.getElementById("email");
+        var emailValid;
+
+        var regexpEmail = /^[a-zA-Z0-9._-]+@[a-z0-9._-]{2,}\.[a-z]{2,4}$/;
 
         function sendForm(e){
+
             e.preventDefault();
 
+            /* Ask server for pseudo verification */
+
             socket.emit("verify_username", this.elements.username.value);
+
+            /* Wait for the response */
+
             socket.on("verify_username", function(response){
                 if (response.used === true){
                     alertUserName.style.display = "block";
@@ -53,7 +65,14 @@
                 }
                 else{
                     alertUserName.style.display = "none";
-                    formElt.submit();
+
+                    if(emailValid === true){
+                        emailInvalide.style.display = "none";
+                        formElt.submit();
+                    }
+                    else{
+                        emailInvalide.style.display = "block";
+                    }
                 }
             });
         }
@@ -67,6 +86,18 @@
         %>
 
         formElt.addEventListener("submit", sendForm);
+
+        inputEmail.addEventListener("blur", function(e){
+
+            if(!regexpEmail.test(e.target.value)){
+                this.style.border = "2px solid #b22222";
+                emailValid = false;
+            }
+            else{
+                this.style.border = "2px solid green";
+                emailValid = true;
+            }
+        });
 
     </script>
 </body>
