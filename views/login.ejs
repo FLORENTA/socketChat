@@ -1,11 +1,11 @@
-<% include includes/header %>
+<% include includes/header.ejs %>
 
 <body>
-    <% include includes/navigation_bar %>
+    <% include includes/navigation_bar.ejs %>
     <div class="container">
         <div class="sub_container">
 
-            <form method="post" action="<%= url %>" >
+            <form method="post" action="<%= url %>" id="formLogin">
                 <div class="field">
                     <label for="username"> Pseudo </label>
                     <input type="text" name="username" id="username" />
@@ -19,5 +19,7 @@
 
         </div>
     </div>
+
+    <% include includes/footer.ejs %>
 </body>
 </html>

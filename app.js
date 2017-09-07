@@ -268,7 +268,7 @@ io.on("connection", function(socket){
                                   mysql.escape(socket.handshake.session.token) + "";
         }
 
-        var sqlMembers = "SELECT * FROM members WHERE connected = true";
+        var sqlMembers = "SELECT * FROM members";
 
         con.query(sqlUpdateConnected, function (err) {
             if (err) throw err;
@@ -276,6 +276,8 @@ io.on("connection", function(socket){
 
         con.query(sqlMembers, function (err, results) {
             if (err) throw err;
+
+            console.log(results);
 
             socket.emit("connected_members", results);
         });
@@ -354,7 +356,7 @@ io.on("connection", function(socket){
         var sqlUserConnectedStatus = "UPDATE members SET connected = 0 WHERE token = " +
                                       mysql.escape(socket.handshake.session.token) + "";
 
-        var sqlConnectedUsers = "SELECT * FROM members WHERE connected = true";
+        var sqlConnectedUsers = "SELECT * FROM members";
 
         con.query(sqlUserConnectedStatus, function(err){
             if (err) throw err;

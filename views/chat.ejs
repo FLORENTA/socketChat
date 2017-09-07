@@ -11,7 +11,7 @@
             <div class="field">
                 <textarea name="message" id="post_message"></textarea>
             </div>
-            <input type="submit" class="btn blue right" value="Envoyer"/>
+            <input type="submit" class="btn blue" value="Envoyer"/>
         </form>
     </div>
 
@@ -40,7 +40,7 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
-        messagesList.appendChild(divElt);
+        messagesList.insertBefore(divElt, messagesList.firstElementChild);
     }
 
     /* To add a user to the list */
@@ -48,6 +48,16 @@
     function appendNewMember(member){
         var liElt = document.createElement("li");
         liElt.textContent = member.username;
+
+        if(member.connected === 0){
+            liElt.style.color = "red";
+            liElt.textContent = member.username + " (Hors-ligne)";
+        }
+        else{
+            liElt.style.color = "green";
+            liElt.textContent = member.username + " (En ligne)";
+        }
+
         membersList.appendChild(liElt);
     }
 

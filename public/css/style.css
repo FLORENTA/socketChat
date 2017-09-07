@@ -25,7 +25,7 @@ nav{
 }
 
 #nav_desktop li{
-    width: 10vw;
+    width: 15vw;
     height: 100%;
     text-align: center;
 }
@@ -52,7 +52,6 @@ nav a:hover{
     color: royalblue;
     -webkit-transition: 400ms;
     -moz-transition:  400ms;
-    -ms-transition:  400ms;
     -o-transition:  400ms;
     transition:  400ms;
 }
@@ -80,6 +79,7 @@ footer{
     cursor: pointer;
     text-decoration: none;
     text-align: center;
+    margin: 5px 0 0 0;
 }
 
 .blue{
@@ -98,12 +98,6 @@ footer{
 .right{
     position:absolute;
     right: 0;
-}
-
-form{
-    width: 100%;
-    position: relative;
-    margin-top: 25px;
 }
 
 .field label,
@@ -144,16 +138,31 @@ h1{
 }
 
 .container{
-    width: 70vw;
+    width: 50vw;
     height: 70vh;
-    margin: 100px auto;
+    margin: 15vh auto;
     position: relative;
+    overflow: hidden;
+    padding: 0;
 }
 
-.container .message{
+.container #messages_list{
+    height: 76%;
+    overflow-y: scroll;
+}
+
+.container #messages_list::-webkit-scrollbar-thumb {
+    background: royalblue;
+}
+
+.container #messages_list::-webkit-scrollbar {
+    width: 3px;
+}
+
+.container #messages_list .message{
     background: #fafafa;
-    padding: 5px;
-    margin: 10px 0;
+    padding: 2px;
+    margin-bottom: 5px;
     width: 100%;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -163,26 +172,45 @@ h1{
 .container #send_message{
     position: absolute;
     bottom: 0;
+    width: 100%;
+    margin: 0;
 }
 
-.container #messages_list{
-    height: 80%;
-    overflow-y: scroll;
+#send_message textarea{
+    resize: none;
 }
 
 #connected_members{
     height: 70vh;
-    position: absolute;
+    position: fixed;
     top: 15vh;
-    left: 5px;
-    width: 10vw;
-    border: 1px solid #c8c8c8;
+    left: 0;
+    width: 200px;
+    -webkit-box-shadow: 0 0 3px #c8c8c8;
+    -moz-box-shadow: 0 0 3px #c8c8c8;
+    box-shadow: 0 0 3px #c8c8c8;
     overflow-y: scroll;
+    z-index: 1;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#connected_members li{
+    width: 100%;
+    text-indent: 5px;
+    margin: 2px 0;
+}
+
+#connected_members::-webkit-scrollbar{
+    display: none;
 }
 
 .sub_container{
     width: 50%;
     margin: 0 auto;
+    position: relative;
 }
 
 /* Sign up page */
@@ -206,6 +234,31 @@ h1{
     text-align: center;
     background: #eee;
     margin: 40vh auto 40vh auto;
+}
+
+/* Login page */
+
+#formLogin{
+    background: #eee;
+    padding: 20px;
+}
+
+@media all and (max-width: 1024px){
+    .container{
+        width: 95%;
+    }
+
+    .sub_container{
+        width: 100%;
+    }
+
+    #connected_members{
+        left: -200px;
+    }
+
+    .btn{
+        font-size: 1em;
+    }
 }
 
 
