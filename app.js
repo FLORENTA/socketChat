@@ -214,7 +214,6 @@ app.post("/login", urlencodedParser, function(req, res){
         else{
             req.session.username = username;
             req.session.token = result[0].token;
-            req.session.loggedIn = true;
 
             res.redirect("/myHome");
         }
@@ -248,6 +247,7 @@ app.use(function(req, res){
 // Listen to connections
 io.on("connection", function(socket){
 
+    /* Pages register & chat socket.io connection */
 
     socket.on("init", function(userData){
 
@@ -282,7 +282,10 @@ io.on("connection", function(socket){
 
     });
 
-    // Let's get all the messages stored in database and send them to the newly connected user
+    /* Let's get all the messages stored in the database
+       and send them to the newly connected user
+    */
+
     con.query("SELECT * FROM discussion", function (err, result) {
 
         if (err) throw err;
@@ -291,7 +294,8 @@ io.on("connection", function(socket){
 
     });
 
-    // Listen to new message sent by a member
+    /* Listen to new message sent by a member */
+
     socket.on("new_message", function(message){
 
         var date = new Date();
