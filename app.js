@@ -11,7 +11,13 @@ var uniqid = require("uniqid");
 var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
-var session = require("express-session");
+
+var session = require("express-session")({
+    secret: "my-secret",
+    resave: true,
+    saveUninitialized: true
+});
+
 var sharedSession = require("express-socket.io-session");
 
 app.set("trust proxy", 1);
@@ -37,9 +43,9 @@ con.connect(function(err){
 app.use(express.static(__dirname + "/public"));
 
 /* Session */
-app.use(session({secret : uniqid()}));
+app.use(session);
 
-/* Shared session with socket.io */
+/* Socket io session */
 io.use(sharedSession(session));
 
 /* Homepage */
@@ -54,25 +60,14 @@ app.get("/", function(req, res){
 /* Renders the chat interface */
 app.get("/chat", function(req, res){
 
-    if(req.session && req.session.loggedIn === true){
+    if(typeof (req.session) !== "undefined" && req.session.token){
 
-        var sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " + mysql.escape(req.session.token);
-        var sqlMembers = "SELECT * FROM members WHERE connected = true";
-
-        con.query(sqlUpdateConnected, function(err, result){
-            if (err) throw err;
+        res.render("chat.ejs", {
+            path: req.path,
+            token: req.session.token,
+            username: req.session.username
         });
 
-        con.query(sqlMembers, function(err, results){
-            if (err) throw err;
-
-            res.render("chat.ejs", {
-                path: req.path,
-                token: req.session.token,
-                username: req.session.username,
-                connectedMembers: results
-            });
-        });
     }
     else{
         res.redirect("/login");
@@ -93,9 +88,9 @@ app.get("/account/create", function(req, res){
 /* Page to check account information */
 app.get("/account/modify", function(req, res){
 
-    if(req.session && req.session.loggedIn === true){
+    if(typeof (req.session) !== "undefined" && req.session.token){
 
-        var sql = "SELECT * FROM members WHERE token = " + mysql.escape(req.session.token);
+        var sql = "SELECT * FROM members WHERE token = " + mysql.escape(req.session.token) + "";
 
         con.query(sql, function(err, result){
             if (err) throw err;
@@ -114,7 +109,8 @@ app.get("/account/modify", function(req, res){
                     name: result[0].name,
                     firstname: result[0].firstname,
                     url : req.url,
-                    email: result[0].email
+                    email: result[0].email,
+                    token: req.session.token
                 });
             }
         });
@@ -127,7 +123,7 @@ app.get("/account/modify", function(req, res){
 
 app.post("/account/modify", urlencodedParser, function(req, res) {
 
-    if (req.session && req.session.loggedIn === true){
+    if (typeof (req.session) !== "undefined" && req.session.token){
         var member = {
             name: ent.encode(req.body.name),
             firstname: ent.encode(req.body.firstname),
@@ -137,7 +133,7 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
             connected: false
         };
 
-        var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(req.session.token);
+        var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(req.session.token) + "";
 
         con.query(sql, member, function(err){
             if (err) throw err;
@@ -189,7 +185,7 @@ app.get("/login", function(req, res){
 /* User homepage */
 app.get("/myHome", function(req, res){
 
-    if(req.session && req.session.loggedIn === true){
+    if(typeof (req.session) !== "undefined" && req.session.token){
         res.render("my_homepage.ejs", {
             path: req.path,
             username: req.session.username
@@ -233,11 +229,10 @@ app.get("/logout", function(req, res){
 
     con.query(sqlUpdateConnectedStatus, function(err){
         if (err) throw err;
-
     });
 
-    if(req.session && req.session.loggedIn === true){
-        req.session = null;
+    if(typeof (req.session) !== "undefined" && req.session.token){
+        req.session.destroy();
     }
 
     res.redirect("/");
@@ -253,11 +248,37 @@ app.use(function(req, res){
 // Listen to connections
 io.on("connection", function(socket){
 
-    socket.on("joined_chat", function(userData){
 
-        socket.handshake.session.userData = userData;
+    socket.on("init", function(userData){
 
-        console.log(socket.handshake.session);
+        socket.handshake.session.token = userData.token;
+        socket.handshake.session.username = userData.username;
+        socket.handshake.session.save();
+
+        var sqlUpdateConnected;
+
+        if(userData.chat === true) {
+
+            sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
+                                  mysql.escape(socket.handshake.session.token) + "";
+
+        }
+        else{
+            sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
+                                  mysql.escape(socket.handshake.session.token) + "";
+        }
+
+        var sqlMembers = "SELECT * FROM members WHERE connected = true";
+
+        con.query(sqlUpdateConnected, function (err) {
+            if (err) throw err;
+        });
+
+        con.query(sqlMembers, function (err, results) {
+            if (err) throw err;
+
+            socket.emit("connected_members", results);
+        });
 
     });
 
@@ -278,13 +299,15 @@ io.on("connection", function(socket){
 
         var sql = "INSERT INTO discussion set ?";
 
-        var toInsert = {pseudo : socket.pseudo, message: message, date: sqlDate};
+        var newMessage = {
+            username : socket.handshake.session.username,
+            message: message,
+            date: sqlDate
+        };
 
-        con.query(sql, toInsert, function(err, result){
+        con.query(sql, newMessage, function(err, result){
            if(err) throw err;
         });
-
-        var newMessage = {pseudo: socket.pseudo, message: message, date: sqlDate};
 
         socket.emit("new_message", newMessage);
 
@@ -292,6 +315,7 @@ io.on("connection", function(socket){
 
     });
 
+    /* Ckecking username during registration or account modification */
     socket.on("verify_username", function(username){
 
         username = ent.encode(username);
@@ -301,9 +325,9 @@ io.on("connection", function(socket){
         */
         var sqlUsername;
 
-        if(socket.handshake) {
+        if(socket.handshake.session.token) {
             sqlUsername = "SELECT * FROM members WHERE username = " + mysql.escape(username) +
-                          " AND NOT token = " + mysql.escape(req.session.token) + "";
+                          " AND NOT token = " + mysql.escape(socket.handshake.session.token) + "";
         }
         else{
             sqlUsername = "SELECT * FROM members WHERE username = " + mysql.escape(username) + "";
@@ -323,8 +347,8 @@ io.on("connection", function(socket){
 
     socket.on("disconnect", function(){
 
-        var sqlUserConnectedStatus = "UPDATE members SET connected = false WHERE token = " +
-                                      mysql.escape(sharedSession) + "";
+        var sqlUserConnectedStatus = "UPDATE members SET connected = 0 WHERE token = " +
+                                      mysql.escape(socket.handshake.session.token) + "";
 
         var sqlConnectedUsers = "SELECT * FROM members WHERE connected = true";
 
@@ -337,6 +361,14 @@ io.on("connection", function(socket){
 
             socket.broadcast.emit("connected_members", results);
         });
+
+        /* Distroy the session */
+        if(socket.handshake.session.token){
+
+            delete socket.handshake.session.token;
+            socket.handshake.session.save();
+
+        }
 
     })
 

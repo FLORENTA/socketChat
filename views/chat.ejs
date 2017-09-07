@@ -1,16 +1,8 @@
-<% include includes/header %>
+<% include includes/header.ejs %>
 <body>
-    <% include includes/navigation_bar %>
-    <ul id="connected_members">
-        <% if (typeof (connectedMembers) !== "undefined"){
-            connectedMembers.forEach(function(connectedMember) {
-        %>
-           <li><%= connectedMember.username %></li>
-        <%
-            });
-        }
-        %>
-    </ul>
+    <% include includes/navigation_bar.ejs %>
+
+    <ul id="connected_members"></ul>
 
     <div class="container">
         <div id="messages_list"></div>
@@ -23,13 +15,15 @@
         </form>
     </div>
 
-    <% include includes/footer %>
+    <% include includes/footer.ejs %>
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
 
-    // Function to insert the messages (all from scratch and one by one)
+    /* Function to insert the messages (all from scratch and one by one) */
+
     function appendNewMessage(message){
+
         var divElt = document.createElement("div");
         divElt.className = "message";
 
@@ -38,7 +32,7 @@
         var month = message.date.substr(5, 2);
         var year = message.date.substr(0, 4);
         var date = day + "/" + month + "/" + year;
-        pseudoElt.textContent = message.pseudo + " le " + date + " à " + message.date.substr(11,8);
+        pseudoElt.textContent = message.username + " le " + date + " à " + message.date.substr(11,8);
 
         var messageElt = document.createElement("p");
         messageElt.textContent = message.message;
@@ -49,22 +43,26 @@
         messagesList.appendChild(divElt);
     }
 
-    // To add a user to the list
+    /* To add a user to the list */
+
     function appendNewMember(member){
         var liElt = document.createElement("li");
-        liElt.textContent = member;
+        liElt.textContent = member.username;
         membersList.appendChild(liElt);
     }
 
-    // Connexion à socket.io
+    /* Connexion au serveur */
+
     var socket = io.connect('http://localhost:8000');
 
-    // Selectors
+    /* Selectors */
+
     var formElt = document.querySelector("form");
     var messagesList = document.getElementById("messages_list");
     var membersList = document.getElementById("connected_members");
 
-    // When the form is submitted
+    /* When the form is submitted */
+
     function sendData(e){
         e.preventDefault();
         var inputValue = this.elements.message.value;
@@ -74,7 +72,8 @@
 
     formElt.addEventListener("submit", sendData);
 
-    // Waiting for the list of all messages stored in database
+    /* Waiting for the list of all messages stored in database */
+
     socket.on("all_messages", function(messages){
 
         messages.forEach(function(message){
@@ -83,12 +82,14 @@
 
     });
 
-    // Waiting for any new message
+    /* Waiting for any new message */
+
     socket.on("new_message", function(message){
         appendNewMessage(message);
     });
 
-    // Waiting for the list of pseudos of all members connected
+    /* Waiting for the list of pseudos of all members connected */
+
     socket.on("connected_members", function(members){
 
         while(membersList.lastElementChild){
@@ -101,10 +102,7 @@
 
     });
 
-    var plop = "plop";
-    socket.emit("joined_chat", plop);
-
-    console.log("<%= token %>");
+    socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true});
 
     </script>
 </body>

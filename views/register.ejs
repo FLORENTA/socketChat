@@ -57,6 +57,14 @@
             })
         }
 
+        <% if (typeof (token) !== "undefined")
+        {
+        %>
+        socket.emit("init", {token : "<%= token %>", username : "<%= username %>", chat: false});
+        <%
+        }
+        %>
+
         formElt.addEventListener("submit", sendForm);
 
     </script>
