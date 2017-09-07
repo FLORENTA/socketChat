@@ -30,7 +30,6 @@ var con = mysql.createConnection({
     database: "chat"
 });
 
-/* Initialization */
 con.connect(function(err){
 
     if(err) throw err;
@@ -40,15 +39,19 @@ con.connect(function(err){
 });
 
 /* To get static files in public folder */
+
 app.use(express.static(__dirname + "/public"));
 
 /* Session */
+
 app.use(session);
 
 /* Socket io session */
+
 io.use(sharedSession(session));
 
 /* Homepage */
+
 app.get("/", function(req, res){
 
     res.render("home.ejs", {
@@ -58,6 +61,7 @@ app.get("/", function(req, res){
 });
 
 /* Renders the chat interface */
+
 app.get("/chat", function(req, res){
 
     if(typeof (req.session) !== "undefined" && req.session.token){
@@ -76,6 +80,7 @@ app.get("/chat", function(req, res){
 });
 
 /* Page to create an account */
+
 app.get("/account/create", function(req, res){
 
     res.render("register.ejs", {
@@ -86,6 +91,7 @@ app.get("/account/create", function(req, res){
 });
 
 /* Page to check account information */
+
 app.get("/account/modify", function(req, res){
 
     if(typeof (req.session) !== "undefined" && req.session.token){
@@ -121,9 +127,12 @@ app.get("/account/modify", function(req, res){
 
 });
 
+/* Treatment if registration form is submitted (account modification) */
+
 app.post("/account/modify", urlencodedParser, function(req, res) {
 
     if (typeof (req.session) !== "undefined" && req.session.token){
+
         var member = {
             name: ent.encode(req.body.name),
             firstname: ent.encode(req.body.firstname),
@@ -150,6 +159,7 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
 });
 
 /* Treatment page if a user creates an account */
+
 app.post("/register/action", urlencodedParser, function(req, res){
 
     var member = {
@@ -183,9 +193,11 @@ app.get("/login", function(req, res){
 });
 
 /* User homepage */
+
 app.get("/myHome", function(req, res){
 
     if(typeof (req.session) !== "undefined" && req.session.token){
+
         res.render("my_homepage.ejs", {
             path: req.path,
             username: req.session.username
@@ -197,6 +209,7 @@ app.get("/myHome", function(req, res){
 });
 
 /* Checking login & username */
+
 app.post("/login", urlencodedParser, function(req, res){
 
     var username = ent.encode(req.body.username);
@@ -221,6 +234,7 @@ app.post("/login", urlencodedParser, function(req, res){
 });
 
 /* Logout */
+
 app.get("/logout", function(req, res){
 
     var sqlUpdateConnectedStatus = "UPDATE members SET connected = false WHERE token = " +
@@ -237,7 +251,8 @@ app.get("/logout", function(req, res){
     res.redirect("/");
 });
 
-// Redirects to route "/" if not on route "/"
+// Redirects to route "/" if not matching any route above */
+
 app.use(function(req, res){
 
     res.redirect("/");
@@ -245,6 +260,7 @@ app.use(function(req, res){
 });
 
 // Listen to connections
+
 io.on("connection", function(socket){
 
     /* Pages register & chat socket.io connection */
@@ -276,8 +292,6 @@ io.on("connection", function(socket){
 
         con.query(sqlMembers, function (err, results) {
             if (err) throw err;
-
-            console.log(results);
 
             socket.emit("connected_members", results);
         });
@@ -322,6 +336,7 @@ io.on("connection", function(socket){
     });
 
     /* Ckecking username during registration or account modification */
+
     socket.on("verify_username", function(username){
 
         username = ent.encode(username);
@@ -351,9 +366,11 @@ io.on("connection", function(socket){
         });
     });
 
+    /* Listening to disconnection */
+
     socket.on("disconnect", function(){
 
-        var sqlUserConnectedStatus = "UPDATE members SET connected = 0 WHERE token = " +
+        var sqlUserConnectedStatus = "UPDATE members SET connected = false WHERE token = " +
                                       mysql.escape(socket.handshake.session.token) + "";
 
         var sqlConnectedUsers = "SELECT * FROM members";
