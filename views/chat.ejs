@@ -46,6 +46,7 @@
     /* To add a user to the list */
 
     function appendNewMember(member){
+
         var liElt = document.createElement("li");
         liElt.textContent = member.username;
 
@@ -107,7 +108,7 @@
             membersList.removeChild(membersList.lastElementChild);
         }
 
-        members.forEach(function(member, index){
+        members.forEach(function(member){
             appendNewMember(member);
         });
 

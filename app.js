@@ -293,6 +293,7 @@ io.on("connection", function(socket){
             if (err) throw err;
 
             socket.emit("connected_members", results);
+            socket.broadcast.emit("connected_members", results);
         });
 
     });
