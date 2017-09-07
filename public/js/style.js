@@ -5,6 +5,7 @@ window.addEventListener("load", function() {
     if (window.innerWidth < 1024) {
 
         navUlElt.setAttribute("id", "nav_mobile");
+        var connectedMembersElt = document.getElementById("connected_members");
 
         document.getElementById("burger").addEventListener("click", function(){
 
@@ -14,6 +15,17 @@ window.addEventListener("load", function() {
             else{
                 navUlElt.style.left = "-100%";
             }
+        });
+
+        document.getElementById("people").addEventListener("click", function(){
+
+            if(parseFloat(getComputedStyle(connectedMembersElt).left) < 0){
+                connectedMembersElt.style.left = "0";
+            }
+            else{
+                connectedMembersElt.style.left = "-75vw";
+            }
+
         });
     }
     else {

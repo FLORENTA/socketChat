@@ -15,6 +15,8 @@
         </form>
     </div>
 
+    <div id="people"></div>
+
     <% include includes/footer.ejs %>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -22,7 +24,11 @@
 
     /* Function to insert the messages (all from scratch and one by one) */
 
-    function appendNewMessage(message){
+    function scrollToBottom() {
+        messagesList.scrollTop = messagesList.lastElementChild.offsetTop;
+    }
+
+    function appendNewMessage(message, index){
 
         var divElt = document.createElement("div");
         divElt.className = "message";
@@ -40,7 +46,13 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
+        console.log(index);
+        if(index % 2 !== 0){
+            divElt.style.alignSelf = "flex-end";
+            divElt.style.backgroundColor = "#777";
+        }
         messagesList.appendChild(divElt);
+
     }
 
     /* To add a user to the list */
@@ -51,11 +63,12 @@
         liElt.textContent = member.username;
 
         if(member.connected === 0){
-            liElt.style.color = "red";
+            liElt.style.color = "#777";
             liElt.textContent = member.username + " (Hors-ligne)";
         }
         else{
-            liElt.style.color = "green";
+            liElt.style.color = "#4169e1";
+            liElt.style.fontWeight = "600";
             liElt.textContent = member.username + " (En ligne)";
         }
 
@@ -75,11 +88,15 @@
     /* When the form is submitted */
 
     function sendData(e){
+
         e.preventDefault();
+
         var inputValue = this.elements.message.value;
         socket.emit("new_message", inputValue);
         this.elements.message.value = "";
     }
+
+    /* Event Listener on form submission */
 
     formElt.addEventListener("submit", sendData);
 
@@ -87,17 +104,20 @@
 
     socket.on("all_messages", function(messages){
 
-        messages.forEach(function(message){
-            appendNewMessage(message);
+        messages.forEach(function(message, index){
+            appendNewMessage(message, index);
         });
 
+        scrollToBottom();
     });
 
     /* Waiting for any new message */
 
     socket.on("new_message", function(message){
         appendNewMessage(message);
-        messagesList.scrollTop = messagesList.lastElementChild.offsetTop;
+
+        /* Go to the bottom of the list */
+        scrollToBottom();
     });
 
     /* Waiting for the list of pseudos of all members connected */

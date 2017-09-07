@@ -26,7 +26,7 @@ app.set("trust proxy", 1);
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "root",
     database: "chat"
 });
 
@@ -142,7 +142,8 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
             connected: false
         };
 
-        var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(req.session.token) + "";
+        var sql = "UPDATE members SET ? WHERE token = " +
+                   mysql.escape(req.session.token) + "";
 
         con.query(sql, member, function(err){
             if (err) throw err;
