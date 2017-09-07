@@ -367,6 +367,50 @@ io.on("connection", function(socket){
         });
     });
 
+    /* Private discussion */
+
+    socket.on("private_discussion", function(token){
+
+        var sqlCheckIfDiscussionExists = "SELECT * FROM privatediscussion WHERE token1 = " +
+                                          mysql.escape(socket.handshake.session.token) +
+                                          "AND token2 = " + mysql.escape(token) + " OR token1 = " +
+                                          mysql.escape(token) + "AND token2 = " +
+                                          mysql.escape(socket.handshake.session.token) + "";
+
+        con.query(sqlCheckIfDiscussionExists, function(err, result){
+
+           if (err) throw err;
+
+           if (result.length > 0){
+                console.log(result);
+                console.log(result.length);
+           }
+           else{
+
+               var sql = "INSERT INTO privatediscussion SET ?";
+
+               var toInsert = {
+                   token1 : socket.handshake.session.token,
+                   token2 : token,
+                   discussiontoken : md5(uniqid())
+               };
+
+               con.query(sql, toInsert, function(err){
+
+                   if (err) throw err;
+
+               });
+
+               con.query("SELECT * FROM privatediscussion ORDER BY id DESC LIMIT 1", function(err, result){
+
+               });
+
+           }
+
+        });
+
+    });
+
     /* Listening to disconnection */
 
     socket.on("disconnect", function(){

@@ -257,6 +257,7 @@ h1{
     width: 100%;
     text-indent: 5px;
     margin: 2px 0;
+    cursor: pointer;
 }
 
 #connected_members::-webkit-scrollbar{

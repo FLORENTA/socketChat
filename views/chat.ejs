@@ -60,7 +60,8 @@
     function appendNewMember(member){
 
         var liElt = document.createElement("li");
-        liElt.textContent = member.username;
+
+        liElt.setAttribute("id", member.token);
 
         if(member.connected === 0){
             liElt.style.color = "#777";
@@ -71,6 +72,12 @@
             liElt.style.fontWeight = "600";
             liElt.textContent = member.username + " (En ligne)";
         }
+
+        liElt.addEventListener("click", function(e){
+
+            socket.emit("private_discussion", e.target.getAttribute("id"));
+
+        });
 
         membersList.appendChild(liElt);
     }
