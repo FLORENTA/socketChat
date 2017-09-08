@@ -99,7 +99,14 @@
         e.preventDefault();
 
         var inputValue = this.elements.message.value;
-        socket.emit("new_message", inputValue);
+
+        if(privateDiscussionToken){
+            socket.emit("new_message", {message : inputValue, privateDiscussionToken : privateDiscussionToken});
+        }
+        else{
+            socket.emit("new_message", inputValue);
+        }
+
         this.elements.message.value = "";
     }
 
@@ -141,7 +148,21 @@
 
     });
 
-    socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true});
+    socket.on("private_discussion_token", function(privateDiscussionToken){
+        window.location = "/chat/private/" + privateDiscussionToken;
+    });
+
+    var locationElt = "<%= path %>";
+    var privateDiscussionToken = locationElt.substr(14);
+
+    if (typeof (privateDiscussionToken) !== "undefined"){
+        socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true, privateDiscussionToken : privateDiscussionToken});
+    }
+    else{
+        socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true});
+    }
+
+
 
     </script>
 </body>

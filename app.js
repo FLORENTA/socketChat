@@ -79,6 +79,20 @@ app.get("/chat", function(req, res){
 
 });
 
+app.get("/chat/private/:discuscussionToken", function(req, res){
+
+    if(typeof (req.session) !== "undefined" && req.session.token){
+
+        res.render("chat.ejs", {
+            path: req.path,
+            token: req.session.token,
+            username: req.session.username
+        });
+
+    }
+
+});
+
 /* Page to create an account */
 
 app.get("/account/create", function(req, res){
@@ -273,22 +287,37 @@ io.on("connection", function(socket){
         socket.handshake.session.save();
 
         var sqlUpdateConnected;
-        var sqlMembers = "SELECT * FROM members ORDER BY username";
+        var sqlMembers;
 
         if(userData.chat === true) {
 
-            sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
-                                  mysql.escape(socket.handshake.session.token) + "";
+            if(!userData.privateDiscussionToken) {
+                sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
+                                      mysql.escape(socket.handshake.session.token) + "";
+            }
         }
         else{
-            sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
-                                  mysql.escape(socket.handshake.session.token) + "";
+
+            if(!userData.privateDiscussionToken){
+                sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
+                                      mysql.escape(socket.handshake.session.token) + "";
+            }
         }
 
         con.query(sqlUpdateConnected, function (err) {
             if (err) throw err;
         });
 
+
+        console.log(userData);
+
+        if(userData.privateDiscussionToken){
+            sqlMembers = "SELECT * FROM privatemessages WHERE discussionToken = " +
+                          mysql.escape(userData.privateDiscussionToken) + "";
+        }
+        else{
+            sqlMembers = "SELECT * FROM members ORDER BY username";
+        }
 
         con.query(sqlMembers, function (err, results) {
             if (err) throw err;
@@ -315,16 +344,32 @@ io.on("connection", function(socket){
 
     socket.on("new_message", function(message){
 
+        var sql, newMessage;
+
         var date = new Date();
         var sqlDate = dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss");
 
-        var sql = "INSERT INTO discussion set ?";
+        if(message.privateDiscussionToken){
 
-        var newMessage = {
-            username : socket.handshake.session.username,
-            message: message,
-            date: sqlDate
-        };
+            sql = "INSERT INTO privatemessages set ?";
+
+            newMessage = {
+                username : socket.handshake.session.username,
+                message: message,
+                date: sqlDate,
+                discussionToken: message.privateDiscussionToken
+            };
+        }
+        else{
+
+            sql = "INSERT INTO discussion set ?";
+
+            newMessage = {
+                username : socket.handshake.session.username,
+                message: message,
+                date: sqlDate
+            };
+        }
 
         con.query(sql, newMessage, function(err, result){
            if(err) throw err;
@@ -381,12 +426,16 @@ io.on("connection", function(socket){
 
            if (err) throw err;
 
+           /* if result, sends a message to the page with
+              to discussion token to redirect
+           */
+
            if (result.length > 0){
-                console.log(result);
-                console.log(result.length);
+                socket.emit("private_discussion_token", result[0].discussiontoken);
            }
            else{
 
+               /* Creation of a new private discussion */
                var sql = "INSERT INTO privatediscussion SET ?";
 
                var toInsert = {
@@ -401,8 +450,10 @@ io.on("connection", function(socket){
 
                });
 
-               con.query("SELECT * FROM privatediscussion ORDER BY id DESC LIMIT 1", function(err, result){
+               /* Looks for the last row inserted */
 
+               con.query("SELECT * FROM privatediscussion ORDER BY id DESC LIMIT 1", function(err, result){
+                   socket.emit("private_discussion_token", result[0].discussiontoken);
                });
 
            }
