@@ -90,6 +90,9 @@ app.get("/chat/private/:discuscussionToken", function(req, res){
         });
 
     }
+    else{
+        res.redirect("/login");
+    }
 
 });
 
@@ -274,7 +277,11 @@ app.use(function(req, res){
 
 });
 
-// Listen to connections
+/*******************************/
+/*                             */
+/*          SOCKET.IO          */
+/*                             */
+/*******************************/
 
 io.on("connection", function(socket){
 
@@ -315,26 +322,25 @@ io.on("connection", function(socket){
                                  mysql.escape(userData.privateDiscussionToken) + "";
 
 
-                con.query(sqlDiscussion, function(err, result){
+            con.query(sqlDiscussion, function(err, result){
 
+                if (err) throw err;
+
+                sqlMembers = "SELECT * FROM members WHERE token = " +
+                             mysql.escape(result[0].token1) + " OR " +
+                             " token = " + mysql.escape(result[0].token2) + "";
+
+                con.query(sqlMembers, function (err, results) {
                     if (err) throw err;
 
-                    sqlMembers = "SELECT * FROM members WHERE token = " +
-                                 mysql.escape(result[0].token1) + " OR " +
-                                 " token = " + mysql.escape(result[0].token2) + "";
-
-                    con.query(sqlMembers, function (err, results) {
-                        if (err) throw err;
-
-                        console.log(results[0]);
-
-                        socket.emit("connected_members", results);
-                        socket.broadcast.emit("connected_members", results);
-                    });
-
+                    socket.emit("connected_members", results);
+                    socket.broadcast.emit("connected_members", results);
                 });
+
+            });
         }
         else{
+
             sqlMembers = "SELECT * FROM members ORDER BY username";
 
             con.query(sqlMembers, function (err, results) {
@@ -343,6 +349,7 @@ io.on("connection", function(socket){
                 socket.emit("connected_members", results);
                 socket.broadcast.emit("connected_members", results);
             });
+
         }
 
         /* Let's get all the messages stored in the database
@@ -511,14 +518,6 @@ io.on("connection", function(socket){
 
             socket.broadcast.emit("connected_members", results);
         });
-
-        /* Distroy the session */
-        if(socket.handshake.session.token){
-
-            delete socket.handshake.session.token;
-            socket.handshake.session.save();
-
-        }
 
     })
 

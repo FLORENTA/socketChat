@@ -46,10 +46,22 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
-        if(index % 2 !== 0){
-            divElt.style.alignSelf = "flex-end";
-            divElt.style.backgroundColor = "#777";
+        if(index !== "new"){
+            if(index % 2 !== 0){
+                divElt.style.alignSelf = "flex-end";
+                divElt.style.backgroundColor = "#777";
+            }
         }
+        else{
+            if((messagesList.childNodes.length) % 2 !== 0 ){
+                divElt.style.alignSelf = "flex-end";
+                divElt.style.backgroundColor = "#777";
+            }
+            else{
+                divElt.style.alignSelf = "flex-start";
+            }
+        }
+
         messagesList.appendChild(divElt);
 
     }
@@ -129,7 +141,7 @@
     /* Waiting for any new message */
 
     socket.on("new_message", function(message){
-        appendNewMessage(message);
+        appendNewMessage(message, "new");
 
         /* Go to the bottom of the list */
         scrollToBottom();
@@ -155,6 +167,8 @@
 
     var locationElt = "<%= path %>";
     var privateDiscussionToken = locationElt.substr(14);
+
+    console.log(privateDiscussionToken);
 
     if (typeof (privateDiscussionToken) !== "undefined"){
         socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true, privateDiscussionToken : privateDiscussionToken});

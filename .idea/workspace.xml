@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="28e4d89a-2360-421e-a444-aee9a5c689b3" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app.js" afterPath="$PROJECT_DIR$/app.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/views/chat.ejs" afterPath="$PROJECT_DIR$/views/chat.ejs" />
     </list>
@@ -15,21 +14,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file leaf-file-name="chat.ejs" pinned="false" current-in-tab="false">
+      <file leaf-file-name="chat.ejs" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/views/chat.ejs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1560">
-              <caret line="150" column="0" lean-forward="true" selection-start-line="150" selection-start-column="0" selection-end-line="150" selection-end-column="0" />
+            <state relative-caret-position="624">
+              <caret line="63" column="0" lean-forward="true" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="281">
-              <caret line="374" column="0" lean-forward="true" selection-start-line="374" selection-start-column="0" selection-end-line="374" selection-end-column="0" />
+            <state relative-caret-position="543">
+              <caret line="518" column="61" lean-forward="false" selection-start-line="518" selection-start-column="61" selection-end-line="518" selection-end-column="61" />
               <folding />
             </state>
           </provider>
@@ -101,8 +100,8 @@
         <option value="$PROJECT_DIR$/views/includes/navigation_bar.ejs" />
         <option value="$PROJECT_DIR$/views/register.ejs" />
         <option value="$PROJECT_DIR$/public/css/style.css" />
-        <option value="$PROJECT_DIR$/views/chat.ejs" />
         <option value="$PROJECT_DIR$/app.js" />
+        <option value="$PROJECT_DIR$/views/chat.ejs" />
       </list>
     </option>
   </component>
@@ -210,12 +209,12 @@
       <workItem from="1504812890566" duration="5155000" />
       <workItem from="1504818964686" duration="4024000" />
       <workItem from="1504847811529" duration="3184000" />
-      <workItem from="1504855265284" duration="5749000" />
+      <workItem from="1504855265284" duration="8313000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="123907000" />
+    <option name="totallyTimeSpent" value="126471000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -578,18 +577,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/views/chat.ejs">
+    <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1560">
-          <caret line="150" column="0" lean-forward="true" selection-start-line="150" selection-start-column="0" selection-end-line="150" selection-end-column="0" />
+        <state relative-caret-position="543">
+          <caret line="518" column="61" lean-forward="false" selection-start-line="518" selection-start-column="61" selection-end-line="518" selection-end-column="61" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app.js">
+    <entry file="file://$PROJECT_DIR$/views/chat.ejs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="281">
-          <caret line="374" column="0" lean-forward="true" selection-start-line="374" selection-start-column="0" selection-end-line="374" selection-end-column="0" />
+        <state relative-caret-position="624">
+          <caret line="63" column="0" lean-forward="true" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
           <folding />
         </state>
       </provider>
