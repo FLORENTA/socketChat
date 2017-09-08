@@ -12,6 +12,7 @@ var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
 var fileUpload = require("express-fileupload");
+var fs = require("fs-extra");
 
 var session = require("express-session")({
     secret: "my-secret",
@@ -155,14 +156,35 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
 
     if (typeof (req.session) !== "undefined" && req.session.token){
 
+        if(typeof (req.files.image) !== "undefined") {
+
+            var file = req.files.image;
+            filename = req.files.image.name;
+
+            file.mv(__dirname + "/public/images/" + filename + "", function(err){
+                if(err) throw err;
+            });
+        }
+        else{
+            filename = null;
+        }
+
         var member = {
             name: ent.encode(req.body.name),
             firstname: ent.encode(req.body.firstname),
             username: ent.encode(req.body.username),
             email: ent.encode(req.body.email),
             password: md5(ent.encode(req.body.password)),
+            avatar: filename,
             connected: false
         };
+
+        con.query("SELECT avatar FROM members WHERE token = " + mysql.escape(req.session.token), function(err, result){
+            if (err) throw err;
+
+            fs.removeSync(__dirname + "/public/images/" + result[0] + "");
+        });
+
 
         var sql = "UPDATE members SET ? WHERE token = " +
                    mysql.escape(req.session.token) + "";
@@ -176,7 +198,7 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
         });
     }
     else{
-        redirect("/");
+        req.redirect("/");
     }
 
 });
