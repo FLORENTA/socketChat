@@ -46,18 +46,28 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
+        /* Check if a new message or loading a list when joining the page */
+
         if(index !== "new"){
+
             if(index % 2 !== 0){
+
                 divElt.style.alignSelf = "flex-end";
                 divElt.style.backgroundColor = "#777";
+
             }
         }
         else{
+
+            /* Check if the lastElementChild index is pair or no */
+
             if((messagesList.childNodes.length) % 2 !== 0 ){
+
                 divElt.style.alignSelf = "flex-end";
                 divElt.style.backgroundColor = "#777";
             }
             else{
+
                 divElt.style.alignSelf = "flex-start";
             }
         }
@@ -72,21 +82,44 @@
 
         var liElt = document.createElement("li");
 
-        liElt.setAttribute("id", member.token);
+        /* Prevent setting an id for the current member so that he
+           cannot create a discussion with themselves
+        */
 
-        if(member.connected === 0){
-            liElt.style.color = "#777";
-            liElt.textContent = member.username + " (Hors-ligne)";
+        if(member.token !== "<%= token %>"){
+
+            liElt.setAttribute("id", member.token);
+
         }
         else{
+
+            liElt.style.cursor = "default";
+
+        }
+
+        if(member.connected === 0){
+
+            liElt.style.color = "#777";
+            liElt.textContent = member.username + " (Hors-ligne)";
+
+        }
+        else{
+
             liElt.style.color = "#4169e1";
             liElt.style.fontWeight = "600";
             liElt.textContent = member.username + " (En ligne)";
+
         }
 
         liElt.addEventListener("click", function(e){
 
-            socket.emit("private_discussion", e.target.getAttribute("id"));
+            /* if the clicked member within the list has an id */
+
+            if(e.target.getAttribute("id")){
+
+                socket.emit("private_discussion", e.target.getAttribute("id"));
+
+            }
 
         });
 
