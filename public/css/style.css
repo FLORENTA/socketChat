@@ -72,6 +72,12 @@ nav a:hover{
     right: 0;
 }
 
+/* For the homepage & login pages */
+
+#nav_desktop li:first-child{
+    position: relative;
+}
+
 #nav_mobile{
     flex-direction: column;
     position: absolute;
@@ -98,10 +104,11 @@ footer{
     height: 30px;
     line-height: 30px;
     text-align: center;
-    color: #fff;
-    background: #999;
+    color: #555;
+    background: #fafafa;
     width: 100%;
     font-size: .9em;
+    border-top: 1px solid #c8c8c8;
 }
 
 .btn {
@@ -171,6 +178,11 @@ footer{
     height: 100px;
 }
 
+.field img{
+    width: 100%;
+    border: 1px solid #c8c8c8;
+}
+
 h1{
     color: royalblue;
     text-align: center;
@@ -186,6 +198,10 @@ h1{
     position: relative;
     overflow: hidden;
     padding: 0;
+}
+
+.container_custom{
+    height: auto;
 }
 
 .container #messages_list{

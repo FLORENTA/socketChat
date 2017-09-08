@@ -1,9 +1,10 @@
 <% include includes/header.ejs %>
 
 <body>
+
     <% include includes/navigation_bar.ejs %>
 
-    <div class="container">
+    <div class="container container_custom">
         <div class="sub_container">
             <form method=post action="<%= url %>" enctype="multipart/form-data">
                 <div class="field">
@@ -31,6 +32,14 @@
                 <div class="field">
                     <label for="image">Image</label>
                     <input type="file" name="image" id="image" />
+                    <% if (typeof (avatar) !== "undefined")
+                    {
+                    %>
+                    <img src="/images/<%= avatar %>"/>
+                    <%
+                    }
+                    %>
+
                 </div>
                 <input type="submit" class="btn black middle" />
             </form>
@@ -47,12 +56,21 @@
         var formElt = document.querySelector("form");
         var alertUserName = document.getElementById("alert_username");
         var emailInvalide = document.getElementById("email_invalide");
-        var inputEmail = document.getElementById("email");
         var emailValid;
 
         var regexpEmail = /^[a-zA-Z0-9._-]+\@[a-z0-9._-]{2,}\.[a-z]{2,4}$/;
 
         function sendForm(e){
+
+            if(!regexpEmail.test(this.elements.email.value)){
+                this.elements.email.style.border = "2px solid #b22222";
+                emailValid = false;
+                window.scrollTo(0, this.elements.email.offsetTop);
+            }
+            else{
+                this.elements.email.style.border = "2px solid green";
+                emailValid = true;
+            }
 
             e.preventDefault();
 
@@ -90,18 +108,6 @@
         %>
 
         formElt.addEventListener("submit", sendForm);
-
-        inputEmail.addEventListener("blur", function(e){
-
-            if(!regexpEmail.test(e.target.value)){
-                this.style.border = "2px solid #b22222";
-                emailValid = false;
-            }
-            else{
-                this.style.border = "2px solid green";
-                emailValid = true;
-            }
-        });
 
     </script>
 </body>

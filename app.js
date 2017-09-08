@@ -122,13 +122,16 @@ app.get("/account/modify", function(req, res){
         var sql = "SELECT * FROM members WHERE token = " + mysql.escape(req.session.token) + "";
 
         con.query(sql, function(err, result){
+
             if (err) throw err;
 
             if(result.length === 0){
+
                 res.redirect("/myHome", {
                     path: req.path,
                     username: req.session.username
                 });
+
             }
             else{
                 /* Render the page with the result to fill in the fields */
@@ -139,6 +142,7 @@ app.get("/account/modify", function(req, res){
                     firstname: result[0].firstname,
                     url : req.url,
                     email: result[0].email,
+                    avatar: result[0].avatar,
                     token: req.session.token
                 });
             }
@@ -156,62 +160,84 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
 
     if (typeof (req.session) !== "undefined" && req.session.token){
 
-        if(typeof (req.files.image) !== "undefined") {
+        var sqlAvatar = "SELECT avatar FROM members WHERE token = " +
+                         mysql.escape(req.session.token) + "";
 
-            var file = req.files.image;
-            filename = req.files.image.name;
-
-            file.mv(__dirname + "/public/images/" + filename + "", function(err){
-                if(err) throw err;
-            });
-        }
-        else{
-            filename = null;
-        }
-
-        var member = {
-            name: ent.encode(req.body.name),
-            firstname: ent.encode(req.body.firstname),
-            username: ent.encode(req.body.username),
-            email: ent.encode(req.body.email),
-            password: md5(ent.encode(req.body.password)),
-            avatar: filename,
-            connected: false
-        };
-
-        con.query("SELECT avatar FROM members WHERE token = " + mysql.escape(req.session.token), function(err, result){
+        con.query(sqlAvatar, function(err, result) {
 
             if (err) throw err;
 
-            if(result.length > 0){
+            var avatar = result[0].avatar;
 
-                var path = __dirname + "/public/images/" + result[0].avatar + "";
+            var filename;
 
-                if(fs.existsSync(path)){
+            if(typeof (req.files.image) !== "undefined") {
 
-                    fs.unlink(path, function(err){
-                        if (err) throw err;
-                    });
+                var file = req.files.image;
+
+                filename = file.name;
+
+                file.mv(__dirname + "/public/images/" + filename + "", function(err){
+
+                    if(err) throw err;
+
+                });
+
+                /* Delete the previous image attached to the
+                    profile if it does exist
+                */
+
+                if(avatar !== null) {
+
+                    var path = __dirname + "/public/images/" + avatar + "";
+
+                    if (fs.existsSync(path)) {
+
+                        fs.unlink(path, function (err) {
+                            if (err) throw err;
+                        });
+
+                    }
+                }
+            }
+            else{
+
+                if(avatar !== null){
+
+                    filename = avatar;
 
                 }
 
             }
 
-        });
+            var member = {
 
-        var sql = "UPDATE members SET ? WHERE token = " +
-                   mysql.escape(req.session.token) + "";
+                name: req.body.name,
+                firstname: req.body.firstname,
+                username: ent.encode(req.body.username),
+                email: ent.encode(req.body.email),
+                password: md5(ent.encode(req.body.password)),
+                avatar: filename,
+                connected: false
 
-        con.query(sql, member, function(err){
-            if (err) throw err;
+            };
 
-            /* The username may have changed */
-            req.session.username = member.username;
-            res.redirect("/account/modify");
+            var sql = "UPDATE members SET ? WHERE token = " +
+                       mysql.escape(req.session.token) + "";
+
+            con.query(sql, member, function(err){
+                if (err) throw err;
+
+                /* The username may have changed */
+
+                req.session.username = member.username;
+
+                res.redirect("/account/modify");
+            });
         });
     }
     else{
-        req.redirect("/");
+        res.redirect("/");
     }
 
 });
@@ -225,6 +251,7 @@ app.post("/register/action", urlencodedParser, function(req, res){
     if(typeof (req.files.image) !== "undefined") {
 
         var file = req.files.image;
+
         filename = req.files.image.name;
 
         file.mv(__dirname + "/public/images/" + filename + "", function(err){
@@ -236,8 +263,8 @@ app.post("/register/action", urlencodedParser, function(req, res){
     }
 
     var member = {
-        name: ent.encode(req.body.name),
-        firstname: ent.encode(req.body.firstname),
+        name: req.body.name,
+        firstname: req.body.firstname,
         username: ent.encode(req.body.username),
         email: ent.encode(req.body.email),
         password: md5(ent.encode(req.body.password)),
@@ -266,22 +293,6 @@ app.get("/login", function(req, res){
 
 });
 
-/* User homepage */
-
-app.get("/myHome", function(req, res){
-
-    if(typeof (req.session) !== "undefined" && req.session.token){
-
-        res.render("my_homepage.ejs", {
-            path: req.path,
-            username: req.session.username
-        });
-    }
-    else{
-        res.redirect("/login");
-    }
-});
-
 /* Checking login & username */
 
 app.post("/login", urlencodedParser, function(req, res){
@@ -290,7 +301,7 @@ app.post("/login", urlencodedParser, function(req, res){
     var password = md5(ent.encode(req.body.password));
 
     var sql = "SELECT * FROM members WHERE username = " + mysql.escape(username) +
-              " AND password = " + mysql.escape(password) + "";
+        " AND password = " + mysql.escape(password) + "";
 
     con.query(sql, function(err, result){
         if(err) throw err;
@@ -305,6 +316,22 @@ app.post("/login", urlencodedParser, function(req, res){
             res.redirect("/myHome");
         }
     });
+});
+
+/* User homepage */
+
+app.get("/myHome", function(req, res){
+
+    if(typeof (req.session) !== "undefined" && req.session.token){
+
+        res.render("my_homepage.ejs", {
+            path: req.path,
+            username: req.session.username
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
 });
 
 /* Logout */
@@ -341,7 +368,7 @@ app.use(function(req, res){
 
 io.on("connection", function(socket){
 
-    /* Pages register & chat socket.io connection */
+    /* Register & chat pages' socket.io connection */
 
     socket.on("init", function(userData) {
 
@@ -521,7 +548,7 @@ io.on("connection", function(socket){
            if (err) throw err;
 
            /* if result, sends a message to the page with
-              to discussion token to redirect
+              the discussion token to redirect to the private chat
            */
 
            if (result.length > 0){
@@ -530,6 +557,7 @@ io.on("connection", function(socket){
            else{
 
                /* Creation of a new private discussion */
+
                var sql = "INSERT INTO privatediscussion SET ?";
 
                var toInsert = {
