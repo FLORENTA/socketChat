@@ -15,6 +15,8 @@
         </form>
     </div>
 
+    <div id="people"></div>
+
     <% include includes/footer.ejs %>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -22,7 +24,11 @@
 
     /* Function to insert the messages (all from scratch and one by one) */
 
-    function appendNewMessage(message){
+    function scrollToBottom() {
+        messagesList.scrollTop = messagesList.lastElementChild.offsetTop;
+    }
+
+    function appendNewMessage(message, index){
 
         var divElt = document.createElement("div");
         divElt.className = "message";
@@ -40,7 +46,34 @@
         divElt.appendChild(pseudoElt);
         divElt.appendChild(messageElt);
 
+        /* Check if a new message or loading a list when joining the page */
+
+        if(index !== "new"){
+
+            if(index % 2 !== 0){
+
+                divElt.style.alignSelf = "flex-end";
+                divElt.style.backgroundColor = "#777";
+
+            }
+        }
+        else{
+
+            /* Check if the lastElementChild index is pair or no */
+
+            if((messagesList.childNodes.length) % 2 !== 0 ){
+
+                divElt.style.alignSelf = "flex-end";
+                divElt.style.backgroundColor = "#777";
+            }
+            else{
+
+                divElt.style.alignSelf = "flex-start";
+            }
+        }
+
         messagesList.appendChild(divElt);
+
     }
 
     /* To add a user to the list */
@@ -48,16 +81,47 @@
     function appendNewMember(member){
 
         var liElt = document.createElement("li");
-        liElt.textContent = member.username;
 
-        if(member.connected === 0){
-            liElt.style.color = "red";
-            liElt.textContent = member.username + " (Hors-ligne)";
+        /* Prevent setting an id for the current member so that he
+           cannot create a discussion with themselves
+        */
+
+        if(member.token !== "<%= token %>"){
+
+            liElt.setAttribute("id", member.token);
+
         }
         else{
-            liElt.style.color = "green";
-            liElt.textContent = member.username + " (En ligne)";
+
+            liElt.style.cursor = "default";
+
         }
+
+        if(member.connected === 0){
+
+            liElt.style.color = "#777";
+            liElt.textContent = member.username + " (Hors-ligne)";
+
+        }
+        else{
+
+            liElt.style.color = "#4169e1";
+            liElt.style.fontWeight = "600";
+            liElt.textContent = member.username + " (En ligne)";
+
+        }
+
+        liElt.addEventListener("click", function(e){
+
+            /* if the clicked member within the list has an id */
+
+            if(e.target.getAttribute("id")){
+
+                socket.emit("private_discussion", e.target.getAttribute("id"));
+
+            }
+
+        });
 
         membersList.appendChild(liElt);
     }
@@ -75,11 +139,22 @@
     /* When the form is submitted */
 
     function sendData(e){
+
         e.preventDefault();
+
         var inputValue = this.elements.message.value;
-        socket.emit("new_message", inputValue);
+
+        if(privateDiscussionToken){
+            socket.emit("new_message", {message : inputValue, privateDiscussionToken : privateDiscussionToken});
+        }
+        else{
+            socket.emit("new_message", inputValue);
+        }
+
         this.elements.message.value = "";
     }
+
+    /* Event Listener on form submission */
 
     formElt.addEventListener("submit", sendData);
 
@@ -87,17 +162,22 @@
 
     socket.on("all_messages", function(messages){
 
-        messages.forEach(function(message){
-            appendNewMessage(message);
+        messages.forEach(function(message, index){
+            appendNewMessage(message, index);
         });
 
+        if(messages.length > 0){
+            scrollToBottom();
+        }
     });
 
     /* Waiting for any new message */
 
     socket.on("new_message", function(message){
-        appendNewMessage(message);
-        messagesList.scrollTop = messagesList.lastElementChild.offsetTop;
+        appendNewMessage(message, "new");
+
+        /* Go to the bottom of the list */
+        scrollToBottom();
     });
 
     /* Waiting for the list of pseudos of all members connected */
@@ -114,7 +194,23 @@
 
     });
 
-    socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true});
+    socket.on("private_discussion_token", function(privateDiscussionToken){
+        window.location = "/chat/private/" + privateDiscussionToken;
+    });
+
+    var locationElt = "<%= path %>";
+    var privateDiscussionToken = locationElt.substr(14);
+
+    console.log(privateDiscussionToken);
+
+    if (typeof (privateDiscussionToken) !== "undefined"){
+        socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true, privateDiscussionToken : privateDiscussionToken});
+    }
+    else{
+        socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true});
+    }
+
+
 
     </script>
 </body>

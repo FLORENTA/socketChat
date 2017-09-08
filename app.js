@@ -79,6 +79,23 @@ app.get("/chat", function(req, res){
 
 });
 
+app.get("/chat/private/:discuscussionToken", function(req, res){
+
+    if(typeof (req.session) !== "undefined" && req.session.token){
+
+        res.render("chat.ejs", {
+            path: req.path,
+            token: req.session.token,
+            username: req.session.username
+        });
+
+    }
+    else{
+        res.redirect("/login");
+    }
+
+});
+
 /* Page to create an account */
 
 app.get("/account/create", function(req, res){
@@ -142,7 +159,8 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
             connected: false
         };
 
-        var sql = "UPDATE members SET ? WHERE token = " + mysql.escape(req.session.token) + "";
+        var sql = "UPDATE members SET ? WHERE token = " +
+                   mysql.escape(req.session.token) + "";
 
         con.query(sql, member, function(err){
             if (err) throw err;
@@ -259,71 +277,137 @@ app.use(function(req, res){
 
 });
 
-// Listen to connections
+/*******************************/
+/*                             */
+/*          SOCKET.IO          */
+/*                             */
+/*******************************/
 
 io.on("connection", function(socket){
 
     /* Pages register & chat socket.io connection */
 
-    socket.on("init", function(userData){
+    socket.on("init", function(userData) {
 
         socket.handshake.session.token = userData.token;
         socket.handshake.session.username = userData.username;
         socket.handshake.session.save();
 
         var sqlUpdateConnected;
-        var sqlMembers = "SELECT * FROM members ORDER BY username";
+        var sqlMembers;
 
-        if(userData.chat === true) {
+        if (userData.chat === true) {
 
             sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
                                   mysql.escape(socket.handshake.session.token) + "";
         }
-        else{
+        else {
             sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
                                   mysql.escape(socket.handshake.session.token) + "";
         }
+
 
         con.query(sqlUpdateConnected, function (err) {
             if (err) throw err;
         });
 
+        /* If private discussion, let's select
+           the participants to the discussion and get their connection status.
+           Else, let's get all the participants because global chat page
+         */
 
-        con.query(sqlMembers, function (err, results) {
-            if (err) throw err;
+        if(userData.privateDiscussionToken){
 
-            socket.emit("connected_members", results);
-            socket.broadcast.emit("connected_members", results);
-        });
+            var sqlDiscussion = "SELECT * FROM privatediscussion WHERE discussionToken = " +
+                                 mysql.escape(userData.privateDiscussionToken) + "";
 
-    });
 
-    /* Let's get all the messages stored in the database
-       and send them to the newly connected user
-    */
+            con.query(sqlDiscussion, function(err, result){
 
-    con.query("SELECT * FROM discussion", function (err, result) {
+                if (err) throw err;
 
-        if (err) throw err;
+                sqlMembers = "SELECT * FROM members WHERE token = " +
+                             mysql.escape(result[0].token1) + " OR " +
+                             " token = " + mysql.escape(result[0].token2) + "";
 
-        socket.emit("all_messages", result);
+                con.query(sqlMembers, function (err, results) {
+                    if (err) throw err;
 
+                    socket.emit("connected_members", results);
+                    socket.broadcast.emit("connected_members", results);
+                });
+
+            });
+        }
+        else{
+
+            sqlMembers = "SELECT * FROM members ORDER BY username";
+
+            con.query(sqlMembers, function (err, results) {
+                if (err) throw err;
+
+                socket.emit("connected_members", results);
+                socket.broadcast.emit("connected_members", results);
+            });
+
+        }
+
+        /* Let's get all the messages stored in the database
+           and send them to the newly connected user
+           (check if global chat or private discussion)
+        */
+
+        if(userData.privateDiscussionToken){
+
+            con.query("SELECT * FROM privatemessages WHERE discussionToken = " + mysql.escape(userData.privateDiscussionToken) + "", function (err, result) {
+
+                if (err) throw err;
+
+                socket.emit("all_messages", result);
+
+            });
+        }
+        else {
+            con.query("SELECT * FROM discussion", function (err, result) {
+
+                if (err) throw err;
+
+                socket.emit("all_messages", result);
+
+            });
+        }
     });
 
     /* Listen to new message sent by a member */
 
     socket.on("new_message", function(message){
 
+        var sql, newMessage;
+
         var date = new Date();
         var sqlDate = dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss");
 
-        var sql = "INSERT INTO discussion set ?";
+        if(message.privateDiscussionToken){
 
-        var newMessage = {
-            username : socket.handshake.session.username,
-            message: message,
-            date: sqlDate
-        };
+            sql = "INSERT INTO privatemessages set ?";
+
+            newMessage = {
+                username : socket.handshake.session.username,
+                message: message.message,
+                date: sqlDate,
+                discussionToken: message.privateDiscussionToken
+            };
+        }
+        else{
+
+            sql = "INSERT INTO discussion set ?";
+
+            newMessage = {
+                username : socket.handshake.session.username,
+                message: message,
+                date: sqlDate
+            };
+        }
 
         con.query(sql, newMessage, function(err, result){
            if(err) throw err;
@@ -366,6 +450,56 @@ io.on("connection", function(socket){
         });
     });
 
+    /* Private discussion */
+
+    socket.on("private_discussion", function(token){
+
+        var sqlCheckIfDiscussionExists = "SELECT * FROM privatediscussion WHERE token1 = " +
+                                          mysql.escape(socket.handshake.session.token) +
+                                          "AND token2 = " + mysql.escape(token) + " OR token1 = " +
+                                          mysql.escape(token) + "AND token2 = " +
+                                          mysql.escape(socket.handshake.session.token) + "";
+
+        con.query(sqlCheckIfDiscussionExists, function(err, result){
+
+           if (err) throw err;
+
+           /* if result, sends a message to the page with
+              to discussion token to redirect
+           */
+
+           if (result.length > 0){
+                socket.emit("private_discussion_token", result[0].discussionToken);
+           }
+           else{
+
+               /* Creation of a new private discussion */
+               var sql = "INSERT INTO privatediscussion SET ?";
+
+               var toInsert = {
+                   token1 : socket.handshake.session.token,
+                   token2 : token,
+                   discussionToken : md5(uniqid())
+               };
+
+               con.query(sql, toInsert, function(err){
+
+                   if (err) throw err;
+
+               });
+
+               /* Looks for the last row inserted */
+
+               con.query("SELECT * FROM privatediscussion ORDER BY id DESC LIMIT 1", function(err, result){
+                   socket.emit("private_discussion_token", result[0].discussionToken);
+               });
+
+           }
+
+        });
+
+    });
+
     /* Listening to disconnection */
 
     socket.on("disconnect", function(){
@@ -384,14 +518,6 @@ io.on("connection", function(socket){
 
             socket.broadcast.emit("connected_members", results);
         });
-
-        /* Distroy the session */
-        if(socket.handshake.session.token){
-
-            delete socket.handshake.session.token;
-            socket.handshake.session.save();
-
-        }
 
     })
 

@@ -99,7 +99,7 @@ footer{
     line-height: 30px;
     text-align: center;
     color: #fff;
-    background: royalblue;
+    background: #777;
     width: 100%;
     font-size: .9em;
 }
@@ -184,8 +184,10 @@ h1{
 }
 
 .container #messages_list{
-    height: 76%;
+    height: 70%;
     overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
 }
 
 .container #messages_list::-webkit-scrollbar-thumb {
@@ -197,13 +199,20 @@ h1{
 }
 
 .container #messages_list .message{
-    background: #fafafa;
-    padding: 2px;
-    margin-bottom: 5px;
-    width: 100%;
+    background: royalblue;
+    padding: 10px;
+    margin: 5px;
+    width: 45%;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
+    word-break: break-all;
+    border-radius: 10px;
+    color: #fff;
+}
+
+.container #messages_list .message p{
+    margin: 0;
 }
 
 .container #messages_list .message:last-child{
@@ -219,6 +228,8 @@ h1{
 
 #send_message textarea{
     resize: none;
+    font-size: 1em;
+    font-family: "arial", sans-serif;
 }
 
 #connected_members{
@@ -227,21 +238,31 @@ h1{
     top: 15vh;
     left: 0;
     width: 200px;
-    -webkit-box-shadow: 0 0 3px #c8c8c8;
-    -moz-box-shadow: 0 0 3px #c8c8c8;
-    box-shadow: 0 0 3px #c8c8c8;
+    -webkit-box-shadow: 0 0 3px #b8b8b8;
+    -moz-box-shadow: 0 0 3px #b8b8b8;
+    box-shadow: 0 0 3px #b8b8b8;
     overflow-y: scroll;
     z-index: 1;
     background: #fff;
     margin: 0;
     padding: 0;
     list-style-type: none;
+    -webkit-transition: 400ms;
+    -moz-transition: 400ms;
+    -o-transition: 400ms;
+    transition: 400ms;
 }
 
 #connected_members li{
     width: 100%;
     text-indent: 5px;
-    margin: 2px 0;
+    margin: 5px 0;
+    cursor: pointer;
+    background: #fafafa;
+    padding: 5px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 #connected_members::-webkit-scrollbar{
@@ -249,7 +270,7 @@ h1{
 }
 
 .sub_container{
-    width: 50%;
+    width: 75%;
     margin: 0 auto;
     position: relative;
 }
@@ -282,7 +303,13 @@ h1{
 
 #formLogin{
     background: #eee;
-    padding: 20px;
+    padding: 10px;
+}
+
+/* chat page */
+
+#people {
+    display: none;
 }
 
 @media all and (max-width: 1024px){
@@ -295,17 +322,33 @@ h1{
         width: 95%;
     }
 
+    .container #messages_list .message{
+        width: 80%;
+    }
+
+    #people{
+        display: block;
+        position: absolute;
+        bottom: 30px;
+        width: 40px;
+        height: 40px;
+        background: url("people.png") no-repeat center;
+        background-size: contain;
+    }
+
     .sub_container{
         width: 100%;
     }
 
     #connected_members{
-        left: -200px;
+        left: -75vw;
+        width: 75vw;
     }
 
     .btn{
         font-size: 1em;
     }
+
 }
 
 
