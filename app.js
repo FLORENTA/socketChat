@@ -11,6 +11,7 @@ var uniqid = require("uniqid");
 var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
+var fileUpload = require("express-fileupload");
 
 var session = require("express-session")({
     secret: "my-secret",
@@ -41,6 +42,10 @@ con.connect(function(err){
 /* To get static files in public folder */
 
 app.use(express.static(__dirname + "/public"));
+
+/* Use file upload module */
+
+app.use(fileUpload());
 
 /* Session */
 
@@ -180,6 +185,21 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
 
 app.post("/register/action", urlencodedParser, function(req, res){
 
+    var filename;
+
+    if(typeof (req.files.image) !== "undefined") {
+
+        var file = req.files.image;
+        filename = req.files.image.name;
+
+        file.mv(__dirname + "/public/images/" + filename + "", function(err){
+            if(err) throw err;
+        });
+    }
+    else{
+        filename = null;
+    }
+
     var member = {
         name: ent.encode(req.body.name),
         firstname: ent.encode(req.body.firstname),
@@ -187,6 +207,7 @@ app.post("/register/action", urlencodedParser, function(req, res){
         email: ent.encode(req.body.email),
         password: md5(ent.encode(req.body.password)),
         token: md5(uniqid()),
+        avatar: filename,
         connected: false
     };
 

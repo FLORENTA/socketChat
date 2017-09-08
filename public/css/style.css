@@ -99,7 +99,7 @@ footer{
     line-height: 30px;
     text-align: center;
     color: #fff;
-    background: #777;
+    background: #999;
     width: 100%;
     font-size: .9em;
 }
@@ -153,13 +153,18 @@ footer{
 }
 
 .field input[type="text"],
-.field input[type="email"]{
+.field input[type="email"],
+.field input[type="file"]{
     width: 100%;
     padding: 10px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     margin: 5px 0;
+}
+
+.field input[type="file"]{
+    border: 1px solid #c8c8c8;
 }
 
 .field textarea{

@@ -5,7 +5,7 @@
 
     <div class="container">
         <div class="sub_container">
-            <form method=post action="<%= url %>">
+            <form method=post action="<%= url %>" enctype="multipart/form-data">
                 <div class="field">
                     <label for="name"> Nom </label>
                     <input type="text" name="name" id="name" <% if (typeof(name) !== "undefined") { %> value="<%= name %>" <% } %> required/>
@@ -27,6 +27,10 @@
                     <label for="email"> Email </label>
                     <input type="email" name="email" id="email" <% if (typeof(email) !== "undefined") { %> value="<%= email %>" <% } %> required/>
                     <div id="email_invalide"> Email invalide </div>
+                </div>
+                <div class="field">
+                    <label for="image">Image</label>
+                    <input type="file" name="image" id="image" />
                 </div>
                 <input type="submit" class="btn black middle" />
             </form>
