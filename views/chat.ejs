@@ -201,8 +201,6 @@
     var locationElt = "<%= path %>";
     var privateDiscussionToken = locationElt.substr(14);
 
-    console.log(privateDiscussionToken);
-
     if (typeof (privateDiscussionToken) !== "undefined"){
         socket.emit("init", {token: "<%= token %>", username : "<%= username %>", chat: true, privateDiscussionToken : privateDiscussionToken});
     }
