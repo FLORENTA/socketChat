@@ -12,7 +12,7 @@ var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
 var fileUpload = require("express-fileupload");
-var fs = require("fs-extra");
+var fs = require("fs");
 
 var session = require("express-session")({
     secret: "my-secret",
@@ -180,11 +180,24 @@ app.post("/account/modify", urlencodedParser, function(req, res) {
         };
 
         con.query("SELECT avatar FROM members WHERE token = " + mysql.escape(req.session.token), function(err, result){
+
             if (err) throw err;
 
-            fs.removeSync(__dirname + "/public/images/" + result[0] + "");
-        });
+            if(result.length > 0){
 
+                var path = __dirname + "/public/images/" + result[0].avatar + "";
+
+                if(fs.existsSync(path)){
+
+                    fs.unlink(path, function(err){
+                        if (err) throw err;
+                    });
+
+                }
+
+            }
+
+        });
 
         var sql = "UPDATE members SET ? WHERE token = " +
                    mysql.escape(req.session.token) + "";
