@@ -26,7 +26,7 @@ app.set("trust proxy", 1);
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "root",
+    password: "",
     database: "chat"
 });
 
@@ -280,7 +280,7 @@ io.on("connection", function(socket){
 
     /* Pages register & chat socket.io connection */
 
-    socket.on("init", function(userData){
+    socket.on("init", function(userData) {
 
         socket.handshake.session.token = userData.token;
         socket.handshake.session.username = userData.username;
@@ -289,55 +289,86 @@ io.on("connection", function(socket){
         var sqlUpdateConnected;
         var sqlMembers;
 
-        if(userData.chat === true) {
+        if (userData.chat === true) {
 
-            if(!userData.privateDiscussionToken) {
-                sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
-                                      mysql.escape(socket.handshake.session.token) + "";
-            }
+            sqlUpdateConnected = "UPDATE members SET connected = true WHERE token = " +
+                                  mysql.escape(socket.handshake.session.token) + "";
         }
-        else{
+        else {
+            sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
+                                  mysql.escape(socket.handshake.session.token) + "";
+        }
 
-            if(!userData.privateDiscussionToken){
-                sqlUpdateConnected = "UPDATE members SET connected = false WHERE token = " +
-                                      mysql.escape(socket.handshake.session.token) + "";
-            }
-        }
 
         con.query(sqlUpdateConnected, function (err) {
             if (err) throw err;
         });
 
-
-        console.log(userData);
+        /* If private discussion, let's select
+           the participants to the discussion and get their connection status.
+           Else, let's get all the participants because global chat page
+         */
 
         if(userData.privateDiscussionToken){
-            sqlMembers = "SELECT * FROM privatemessages WHERE discussionToken = " +
-                          mysql.escape(userData.privateDiscussionToken) + "";
+
+            var sqlDiscussion = "SELECT * FROM privatediscussion WHERE discussionToken = " +
+                                 mysql.escape(userData.privateDiscussionToken) + "";
+
+
+                con.query(sqlDiscussion, function(err, result){
+
+                    if (err) throw err;
+
+                    sqlMembers = "SELECT * FROM members WHERE token = " +
+                                 mysql.escape(result[0].token1) + " OR " +
+                                 " token = " + mysql.escape(result[0].token2) + "";
+
+                    con.query(sqlMembers, function (err, results) {
+                        if (err) throw err;
+
+                        console.log(results[0]);
+
+                        socket.emit("connected_members", results);
+                        socket.broadcast.emit("connected_members", results);
+                    });
+
+                });
         }
         else{
             sqlMembers = "SELECT * FROM members ORDER BY username";
+
+            con.query(sqlMembers, function (err, results) {
+                if (err) throw err;
+
+                socket.emit("connected_members", results);
+                socket.broadcast.emit("connected_members", results);
+            });
         }
 
-        con.query(sqlMembers, function (err, results) {
-            if (err) throw err;
+        /* Let's get all the messages stored in the database
+           and send them to the newly connected user
+           (check if global chat or private discussion)
+        */
 
-            socket.emit("connected_members", results);
-            socket.broadcast.emit("connected_members", results);
-        });
+        if(userData.privateDiscussionToken){
 
-    });
+            con.query("SELECT * FROM privatemessages WHERE discussionToken = " + mysql.escape(userData.privateDiscussionToken) + "", function (err, result) {
 
-    /* Let's get all the messages stored in the database
-       and send them to the newly connected user
-    */
+                if (err) throw err;
 
-    con.query("SELECT * FROM discussion", function (err, result) {
+                socket.emit("all_messages", result);
 
-        if (err) throw err;
+            });
+        }
+        else {
+            con.query("SELECT * FROM discussion", function (err, result) {
 
-        socket.emit("all_messages", result);
+                if (err) throw err;
 
+                socket.emit("all_messages", result);
+
+            });
+        }
     });
 
     /* Listen to new message sent by a member */
@@ -355,7 +386,7 @@ io.on("connection", function(socket){
 
             newMessage = {
                 username : socket.handshake.session.username,
-                message: message,
+                message: message.message,
                 date: sqlDate,
                 discussionToken: message.privateDiscussionToken
             };
@@ -431,7 +462,7 @@ io.on("connection", function(socket){
            */
 
            if (result.length > 0){
-                socket.emit("private_discussion_token", result[0].discussiontoken);
+                socket.emit("private_discussion_token", result[0].discussionToken);
            }
            else{
 
@@ -441,7 +472,7 @@ io.on("connection", function(socket){
                var toInsert = {
                    token1 : socket.handshake.session.token,
                    token2 : token,
-                   discussiontoken : md5(uniqid())
+                   discussionToken : md5(uniqid())
                };
 
                con.query(sql, toInsert, function(err){
@@ -453,7 +484,7 @@ io.on("connection", function(socket){
                /* Looks for the last row inserted */
 
                con.query("SELECT * FROM privatediscussion ORDER BY id DESC LIMIT 1", function(err, result){
-                   socket.emit("private_discussion_token", result[0].discussiontoken);
+                   socket.emit("private_discussion_token", result[0].discussionToken);
                });
 
            }
