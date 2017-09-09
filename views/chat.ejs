@@ -30,12 +30,10 @@
         var divElt = document.createElement("div");
         divElt.className = "message";
 
+
+
         var pseudoElt = document.createElement("b");
-        var day = message.date.substr(8, 2);
-        var month = message.date.substr(5, 2);
-        var year = message.date.substr(0, 4);
-        var date = day + "/" + month + "/" + year;
-        pseudoElt.textContent = message.username + " le " + date + " à " + message.date.substr(11,8);
+        pseudoElt.textContent = message.username + " le " + message.date;
 
         var messageElt = document.createElement("p");
         messageElt.textContent = message.message;

@@ -467,7 +467,7 @@ io.on("connection", function(socket){
 
         if(userData.privateDiscussionToken){
 
-            con.query("SELECT * FROM privatemessages WHERE discussionToken = " + mysql.escape(userData.privateDiscussionToken) + "", function (err, result) {
+            con.query("SELECT *, DATE_FORMAT(date, '%d/%m/%Y à %H:%i:%s') AS date FROM privatemessages WHERE discussionToken = " + mysql.escape(userData.privateDiscussionToken) + "", function (err, result) {
 
                 if (err) throw err;
 
@@ -476,9 +476,11 @@ io.on("connection", function(socket){
             });
         }
         else {
-            con.query("SELECT * FROM discussion", function (err, result) {
+            con.query("SELECT *, DATE_FORMAT(date, '%d/%m/%Y à %H:%i:%s') AS date FROM discussion", function (err, result) {
 
                 if (err) throw err;
+
+                console.log(result)
 
                 socket.emit("all_messages", result);
 
@@ -521,9 +523,16 @@ io.on("connection", function(socket){
            if(err) throw err;
         });
 
-        socket.emit("new_message", newMessage);
+        var sqlLastMessage = "SELECT *, DATE_FORMAT(date, '%d/%m/%Y à %H:%i:%s') AS date" +
+                             " FROM discussion ORDER BY id DESC LIMIT 1";
 
-        socket.broadcast.emit("new_message", newMessage);
+        con.query(sqlLastMessage, function(err, result){
+
+            socket.emit("new_message", result[0]);
+
+            socket.broadcast.emit("new_message", result[0]);
+
+        });
 
     });
 
@@ -577,7 +586,9 @@ io.on("connection", function(socket){
            */
 
            if (result.length > 0){
+
                 socket.emit("private_discussion_token", result[0].discussionToken);
+
            }
            else{
 
