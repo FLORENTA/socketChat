@@ -8,16 +8,13 @@
         <div id="messages_list"></div>
 
         <form id="send_message">
-            <div class="field">
-                <textarea name="message" id="post_message"></textarea>
-            </div>
-            <input type="submit" class="btn blue" value="Envoyer"/>
+            <input type="text" name="message" id="post_message" />
+            <input type="submit" class="btn blue margin0" value=""/>
         </form>
     </div>
 
     <div id="people"></div>
-
-    <% include includes/footer.ejs %>
+    <script type="text/javascript" src="/js/style.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">

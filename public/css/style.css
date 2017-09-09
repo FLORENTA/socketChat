@@ -17,11 +17,11 @@ nav{
 }
 
 nav #burger{
-    height: 40px;
-    width: 40px;
+    height: 30px;
+    width: 30px;
     display: none;
     position: absolute;
-    top: 10px;
+    top: 15px;
     left: 10px;
     background: url("burger.png") center no-repeat;
     background-size: 100%;
@@ -99,13 +99,10 @@ nav a:hover{
 }
 
 footer{
-    position: absolute;
-    bottom: 0;
     height: 30px;
     line-height: 30px;
     text-align: center;
     color: #555;
-    background: #fafafa;
     width: 100%;
     font-size: .9em;
     border-top: 1px solid #c8c8c8;
@@ -123,6 +120,10 @@ footer{
     text-decoration: none;
     text-align: center;
     margin: 5px 0 0 0;
+}
+
+.margin0{
+    margin: 0;
 }
 
 .blue{
@@ -176,7 +177,7 @@ footer{
 }
 
 .field textarea{
-    height: 100px;
+    height: 40px;
 }
 
 .field img{
@@ -195,18 +196,14 @@ h1{
 .container{
     width: 50vw;
     height: 75vh;
-    margin: 15vh auto;
+    margin: 100px auto 0 auto;
     position: relative;
     overflow: hidden;
     padding: 0;
 }
 
-.container_custom{
-    height: auto;
-}
-
 .container #messages_list{
-    height: 70%;
+    height: 75%;
     overflow-y: scroll;
     display: flex;
     flex-direction: column;
@@ -242,22 +239,30 @@ h1{
 }
 
 .container #send_message{
-    position: absolute;
-    bottom: 0;
     width: 100%;
-    margin: 0;
+    margin: 10px auto 0 auto;
+    height: 20%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-#send_message textarea{
-    resize: none;
-    font-size: 1em;
-    font-family: "arial", sans-serif;
+.container #send_message input[type="text"]{
+    height: 30px;
+    width: 80%;
+}
+
+.container #send_message input[type="submit"]{
+    width: 30px;
+    background: url("send.png") no-repeat center;
+    background-size: cover;
+    height: 30px;
 }
 
 #connected_members{
     height: 75vh;
     position: fixed;
-    top: 15vh;
+    top: 100px;
     left: 0;
     width: 200px;
     -webkit-box-shadow: 0 0 3px #b8b8b8;
@@ -276,9 +281,9 @@ h1{
 }
 
 #connected_members li{
-    width: 100%;
+    width: 95%;
     text-indent: 5px;
-    margin: 5px 0;
+    margin: 5px auto;
     cursor: pointer;
     background: #fafafa;
     padding: 5px;
@@ -342,6 +347,7 @@ h1{
 
     .container{
         width: 95%;
+        margin-top: 60px;
     }
 
     .container #messages_list .message{
@@ -351,11 +357,14 @@ h1{
     #people{
         display: block;
         position: absolute;
-        bottom: 30px;
-        width: 40px;
-        height: 40px;
+        top: 15px;
+        width: 35px;
+        height: 35px;
         background: url("people.png") no-repeat center;
         background-size: contain;
+        right: 2.5%;
+        z-index: 3;
+
     }
 
     .sub_container{
