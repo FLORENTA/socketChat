@@ -1,7 +1,6 @@
 window.addEventListener("load", function() {
 
     var navUlElt = document.querySelector("nav ul");
-    var footerElt = document.querySelector("footer");
     var containerElt = document.querySelector(".container");
 
     if (window.innerWidth < 1024) {
@@ -32,12 +31,6 @@ window.addEventListener("load", function() {
     }
     else {
         navUlElt.setAttribute("id", "nav_desktop");
-    }
-
-    if(parseFloat(getComputedStyle(containerElt).getPropertyValue("height")) > window.innerHeight * .75){
-
-        footerElt.style.position = "relative";
-
     }
 
 });
