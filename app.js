@@ -32,13 +32,37 @@ var con = mysql.createConnection({
     database: "chat"
 });
 
-con.connect(function(err){
+function handleDisconnection() {
 
-    if(err) throw err;
+    con.connect(function (err) {
 
-    console.log("connected !");
+        if (err) {
 
-});
+            console.log(err);
+
+            setTimeout(function(){
+                handleDisconnection();
+            }, 2000);
+        }
+        else{
+            console.log("connected !");
+        }
+
+    });
+
+    con.on("error", function(err){
+
+        if(err.code === "PROTOCOL_CONNECTION_LOST") {
+            handleDisconnection();
+        }
+        else{
+            throw err;
+        }
+
+    });
+}
+
+handleDisconnection();
 
 /* To get static files in public folder */
 
