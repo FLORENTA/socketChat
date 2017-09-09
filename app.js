@@ -16,24 +16,24 @@ var mysql = require("mysql");
 
 /* Connexion to the database */
 
-var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "chat"
-});
+var con;
 
 function handleDisconnection() {
+
+    con = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "",
+        database: "chat",
+        debug: false
+    });
 
     con.connect(function (err) {
 
         if (err) {
 
-            console.log(err);
+            throw err;
 
-            setTimeout(function(){
-                handleDisconnection();
-            }, 2000);
         }
         else{
             console.log("connected !");
