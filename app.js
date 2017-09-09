@@ -6,25 +6,16 @@ var server = http.createServer(app);
 var ent = require('ent');
 var io = require('socket.io').listen(server);
 var dateFormat = require("dateformat");
-var mysql = require("mysql");
 var uniqid = require("uniqid");
 var md5 = require("js-md5");
 var bodyParser = require("body-parser");
 var urlencodedParser = bodyParser.urlencoded({extended : false});
 var fileUpload = require("express-fileupload");
 var fs = require("fs");
-
-var session = require("express-session")({
-    secret: "my-secret",
-    resave: true,
-    saveUninitialized: true
-});
-
-var sharedSession = require("express-socket.io-session");
-
-app.set("trust proxy", 1);
+var mysql = require("mysql");
 
 /* Connexion to the database */
+
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -63,6 +54,16 @@ function handleDisconnection() {
 }
 
 handleDisconnection();
+
+var session = require("express-session")({
+    secret: "my-secret",
+    resave: true,
+    saveUninitialized: true
+});
+
+var sharedSession = require("express-socket.io-session");
+
+app.set("trust proxy", 1);
 
 /* To get static files in public folder */
 
