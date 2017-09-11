@@ -254,12 +254,24 @@ h1{
 
 .container #send_message input[type="text"]{
     height: 30px;
-    width: 80%;
+    width: 75%;
 }
 
-.container #send_message input[type="submit"]{
+.container #send_message input[type="submit"] {
     width: 30px;
     background: url("send.png") no-repeat center;
+    background-size: cover;
+    height: 30px;
+}
+
+.container #send_message #attachment{
+
+    display: none;
+}
+
+.container #send_message label{
+    width: 30px;
+    background: url("pj.png") no-repeat center;
     background-size: cover;
     height: 30px;
 }
@@ -345,6 +357,10 @@ h1{
 }
 
 @media all and (max-width: 1024px){
+
+    #nav_desktop{
+        display: none;
+    }
 
     nav #burger{
         display: block;

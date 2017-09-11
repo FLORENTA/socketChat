@@ -429,6 +429,8 @@ io.on("connection", function(socket){
             var sqlDiscussion = "SELECT * FROM privatediscussion WHERE discussionToken = " +
                                  mysql.escape(userData.privateDiscussionToken) + "";
 
+            var prefix = "connected_members_private_";
+            var path = prefix.concat(userData.privateDiscussionToken);
 
             con.query(sqlDiscussion, function(err, result){
 
@@ -441,8 +443,8 @@ io.on("connection", function(socket){
                 con.query(sqlMembers, function (err, results) {
                     if (err) throw err;
 
-                    socket.emit("connected_members", results);
-                    socket.broadcast.emit("connected_members", results);
+                    socket.emit(path, results);
+                    socket.broadcast.emit(path, results);
                 });
 
             });
@@ -480,8 +482,6 @@ io.on("connection", function(socket){
 
                 if (err) throw err;
 
-                console.log(result)
-
                 socket.emit("all_messages", result);
 
             });
@@ -514,7 +514,7 @@ io.on("connection", function(socket){
 
             newMessage = {
                 username : socket.handshake.session.username,
-                message: message,
+                message: message.message,
                 date: sqlDate
             };
         }
@@ -639,7 +639,7 @@ io.on("connection", function(socket){
             socket.broadcast.emit("connected_members", results);
         });
 
-    })
+    });
 
 });
 
