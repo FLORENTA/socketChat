@@ -326,7 +326,7 @@ app.post("/login", urlencodedParser, function(req, res){
     var password = md5(ent.encode(req.body.password));
 
     var sql = "SELECT * FROM members WHERE username = " + mysql.escape(username) +
-        " AND password = " + mysql.escape(password) + "";
+              " AND password = " + mysql.escape(password) + "";
 
     con.query(sql, function(err, result){
         if(err) throw err;
@@ -489,6 +489,45 @@ io.on("connection", function(socket){
     });
 
     /* Listen to new message sent by a member */
+
+    var file = {};
+
+    var structure = {
+        name: null,
+        type: null,
+        size: 0,
+        data: [],
+        slice: 0
+    };
+
+    socket.on("sliced_picture", function(picture) {
+
+        if (!file[picture.name]) {
+            file[picture.name] = Object.assign({}, structure, picture);
+            file[picture.name].data = [];
+        }
+
+        console.log(file);
+
+        //convert the ArrayBuffer to Buffer
+
+        picture.data = new ArrayBuffer(new Uint8Array(picture.data));
+
+        //save the data
+
+        file[picture.name].data.push(picture.data);
+        file[picture.name].slice++;
+
+        if (file[picture.name].slice * 100000 >= file[picture.name].size) {
+            //do something with the data
+            socket.emit("end_upload")
+        }
+        else {
+            socket.emit('give_me_another_slice', {
+                currentSlice: files[data.name].slice
+            });
+        }
+    });
 
     socket.on("new_message", function(message){
 

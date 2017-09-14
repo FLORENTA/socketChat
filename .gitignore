@@ -1,4 +1,4 @@
 /node_modules
 /public/images/*
 /config/*
-.idea/*
+.idea/workspace.xml

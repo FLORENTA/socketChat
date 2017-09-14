@@ -264,8 +264,7 @@ h1{
     height: 30px;
 }
 
-.container #send_message #attachment{
-
+.container #send_message #picture{
     display: none;
 }
 
@@ -274,6 +273,7 @@ h1{
     background: url("pj.png") no-repeat center;
     background-size: cover;
     height: 30px;
+    cursor: pointer;
 }
 
 #connected_members{

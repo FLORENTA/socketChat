@@ -8,10 +8,10 @@
         <div id="messages_list"></div>
 
         <form id="send_message">
-            <label for="attachment"></label>
-            <input type="file" id="attachment" />
+            <label for="picture"></label>
+            <input type="file" id="picture" name="picture" />
             <input type="text" name="message" id="post_message" />
-            <input type="submit" class="btn blue margin0" value="" />
+            <input type="submit" class="btn blue margin0" id="submit" value="" />
         </form>
     </div>
 
@@ -19,6 +19,7 @@
     <script type="text/javascript" src="/js/style.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/siofu/client.js"></script>
     <script type="text/javascript">
 
     /* Function to insert the messages (all from scratch and one by one) */
@@ -124,7 +125,6 @@
     /* Connexion au serveur */
 
     var socket = io.connect('http://localhost:8000');
-    var uploader = new socketIOFile(socket);
 
     /* Selectors */
 
@@ -139,12 +139,45 @@
         e.preventDefault();
 
         var inputValue = this.elements.message.value;
+        var file = this[0].files[0];
+
+        var fileReader = new FileReader();
+        var slice = file.slice(0, 100000);
+
+        console.log(slice);
+
+        fileReader.readAsArrayBuffer(slice);
+        fileReader.addEventListener("load", function(){
+            var arrayBuffer = fileReader.result;
+
+            socket.emit("sliced_picture", {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: arrayBuffer
+            });
+        })
+
+        socket.on("give_me_another_slice", function(currentSlice){
+            var place = currentSlice.currentSlice * 100000;
+
+            // Math.min() shows the smallest figure in a series of figures
+            slice = file.slice(place, place * Math.min(100000, file.size - place));
+
+            fileReader.readAsArrayBuffer(slice);
+        });
 
         if(privateDiscussionToken){
-            socket.emit("new_message", {message : inputValue, privateDiscussionToken : privateDiscussionToken});
+            socket.emit("new_message", {
+                message : inputValue,
+                privateDiscussionToken :
+                privateDiscussionToken
+            });
         }
         else{
-            socket.emit("new_message", {message: inputValue});
+            socket.emit("new_message", {
+                message: inputValue
+            });
         }
 
         this.elements.message.value = "";
@@ -202,7 +235,6 @@
         /* Must listen for members connections on this specific discussion */
         var prefix = "connected_members_private_";
         var path = prefix.concat(privateDiscussionToken);
-        console.log(path);
 
         socket.on(path, function (members) {
 
