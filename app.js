@@ -490,7 +490,7 @@ io.on("connection", function(socket){
 
     /* Listen to new message sent by a member */
 
-    var file = {};
+    var files = {};
 
     var structure = {
         name: null,
@@ -502,29 +502,33 @@ io.on("connection", function(socket){
 
     socket.on("sliced_picture", function(picture) {
 
-        if (!file[picture.name]) {
-            file[picture.name] = Object.assign({}, structure, picture);
-            file[picture.name].data = [];
+        if (!files[picture.name]) {
+            files[picture.name] = Object.assign({}, structure, picture);
+            files[picture.name].data = [];
         }
-
-        console.log(file);
 
         //convert the ArrayBuffer to Buffer
 
-        picture.data = new ArrayBuffer(new Uint8Array(picture.data));
+        picture.data = new Buffer(new Uint8Array(picture.data));
 
         //save the data
 
-        file[picture.name].data.push(picture.data);
-        file[picture.name].slice++;
+        files[picture.name].data.push(picture.data);
+        files[picture.name].slice++;
 
-        if (file[picture.name].slice * 100000 >= file[picture.name].size) {
+        if (files[picture.name].slice * 100000 >= files[picture.name].size) {
             //do something with the data
-            socket.emit("end_upload")
+            var fileBuffer = Buffer.concat(files[picture.name].data);
+
+            fs.write('tmp' + picture.name, fileBuffer, function(err){
+                delete files[picture.name];
+                if (err) throw err;
+                socket.emit("End of upload");
+            });
         }
         else {
             socket.emit('give_me_another_slice', {
-                currentSlice: files[data.name].slice
+                currentSlice: files[picture.name].slice
             });
         }
     });

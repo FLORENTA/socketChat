@@ -147,7 +147,7 @@
         console.log(slice);
 
         fileReader.readAsArrayBuffer(slice);
-        fileReader.addEventListener("load", function(){
+        fileReader.addEventListener("load", function(e){
             var arrayBuffer = fileReader.result;
 
             socket.emit("sliced_picture", {
